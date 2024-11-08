@@ -1,5 +1,5 @@
 {
-  "name": "SkyShare",
+  "name": "sky-share",
   "private": true,
   "scripts": {
     "build": "turbo build",
