@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  files     File[]
+}
+
+model File {
+  id        String   @id @default(uuid())
+  ownerId   String
+  fileName  String
+  fileSize  Int
+  s3Key     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner     User     @relation(fields: [ownerId], references: [id])
+  links     Link[]
+}
+
+model Link {
+  id          String     @id @default(uuid())
+  fileId      String
+  linkToken   String     @unique
+  permissions Permission
+  expiryDate  DateTime?
+  createdAt   DateTime   @default(now())
+  accesses    Access[]
+  file        File       @relation(fields: [fileId], references: [id])
+}
+
+model Access {
+  id              String     @id @default(uuid())
+  linkId          String
+  email           String
+  permissionLevel Permission
+  link            Link       @relation(fields: [linkId], references: [id])
+
+  @@unique([linkId, email])
+}
+
+enum Permission {
+  VIEW
+  EDIT
+}
