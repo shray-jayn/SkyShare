@@ -3,8 +3,8 @@ import { UserService } from './user.service';
 import { RegisterUserDto } from './dtos/register-user.dto';
 import { LoginUserDto } from './dtos/login-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
 import { USER_MESSAGES } from './constants/messages';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('users')
 
@@ -43,7 +43,7 @@ export class UserController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   @HttpCode(HttpStatus.OK)
   async getProfile(@Req() req) {
@@ -61,7 +61,7 @@ export class UserController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Put('profile')
   @HttpCode(HttpStatus.OK)
   async updateProfile(@Body() updateUserDto: UpdateUserDto, @Req() req) {
@@ -82,7 +82,7 @@ export class UserController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Delete('profile')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteProfile(@Req() req) {

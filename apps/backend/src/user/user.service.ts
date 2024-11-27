@@ -6,12 +6,14 @@ import { RegisterUserDto } from './dtos/register-user.dto';
 import { LoginUserDto } from './dtos/login-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { USER_MESSAGES } from './constants/messages';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async register(registerUserDto: RegisterUserDto) {
@@ -36,15 +38,23 @@ export class UserService {
   async login(loginUserDto: LoginUserDto) {
     const { email, password } = loginUserDto;
     const user = await this.prisma.user.findUnique({ where: { email } });
-
+  
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException(USER_MESSAGES.INVALID_CREDENTIALS);
     }
-
+  
+    const secret = this.configService.get<string>('JWT_SECRET');
+    const expiresIn = this.configService.get<string | number>('JWT_EXPIRES_IN_SECONDS');
     const payload = { sub: user.id, email: user.email };
-    const token = this.jwtService.sign(payload);
+    
+    const token = this.jwtService.sign(payload, {
+      secret,
+      expiresIn: Number(expiresIn), 
+    });
+  
     return token;
   }
+  
 
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({

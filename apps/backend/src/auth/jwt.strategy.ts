@@ -3,7 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -17,7 +16,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<{ id: string; email: string }> {
+  async validate(payload: any) {
+    // console.log('JwtStrategy Validate Triggered:', payload); 
     const { sub: userId } = payload;
 
     const user = await this.prisma.user.findUnique({
@@ -25,8 +25,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) {
-      throw new UnauthorizedException('You need to login first to access this endpoint');
+      throw new UnauthorizedException('Invalid token. Please log in again.');
     }
-    return { id: user.id, email: user.email };
+
+    return user; 
   }
 }
