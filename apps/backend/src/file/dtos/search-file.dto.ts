@@ -1,23 +1,15 @@
-import { IsOptional, IsString, IsInt, IsDateString } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsDateString } from 'class-validator';
 
 export class SearchFilesDto {
   @IsString()
   @IsOptional()
-  name?: string;
+  query?: string;
 
-  @IsInt()
+  @IsNumber()
   @IsOptional()
-  minSize?: number;
-
-  @IsInt()
-  @IsOptional()
-  maxSize?: number;
+  size?: number;
 
   @IsDateString()
   @IsOptional()
-  createdAfter?: string;
-
-  @IsDateString()
-  @IsOptional()
-  createdBefore?: string;
+  date?: string;
 }

@@ -3,9 +3,9 @@ import { IsString, IsNotEmpty } from 'class-validator';
 export class UpdateMetadataDto {
   @IsString()
   @IsNotEmpty()
-  fileId: string;
+  id: string;
 
   @IsString()
   @IsNotEmpty()
-  newFileName: string;
+  fileName: string;
 }
