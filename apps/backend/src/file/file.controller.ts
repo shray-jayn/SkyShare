@@ -21,9 +21,8 @@ import { SearchFilesDto } from './dtos/search-file.dto';
 import { FILE_MESSAGES } from './constants/file.constants';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateFileSizeDto } from './dtos/update-file-size.dto';
-import { ShareFileDto } from './dtos/share-file.dto';
 
-@UseGuards(AuthGuard('jwt')) 
+@UseGuards(AuthGuard('jwt'))
 @Controller('files')
 export class FileController {
   constructor(private readonly fileService: FileService) {}
@@ -35,7 +34,10 @@ export class FileController {
     @Req() req: any,
   ): Promise<{ message: string; data: UploadUrlResponseDto }> {
     const userId = req.user.id;
-    const data = await this.fileService.generateUploadUrl(createUploadUrlDto, userId);
+    const data = await this.fileService.generateUploadUrl(
+      createUploadUrlDto,
+      userId,
+    );
     return {
       message: FILE_MESSAGES.UPLOAD_URL_SUCCESS,
       data,
@@ -55,7 +57,9 @@ export class FileController {
 
   @Get('/:id')
   @HttpCode(HttpStatus.OK)
-  async getFileMetadata(@Param('id') id: string): Promise<{ message: string; data: any }> {
+  async getFileMetadata(
+    @Param('id') id: string,
+  ): Promise<{ message: string; data: any }> {
     const metadata = await this.fileService.getFileMetadata(id);
     if (!metadata) {
       throw new NotFoundException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
@@ -67,9 +71,10 @@ export class FileController {
   }
 
   @Delete('/:id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteFile(@Param('id') id: string): Promise<void> {
+  @HttpCode(HttpStatus.OK)
+  async deleteFile(@Param('id') id: string): Promise<{ message: string }> {
     await this.fileService.deleteFile(id);
+    return { message: FILE_MESSAGES.FILE_DELETE_SUCCESS };
   }
 
   @Put('/metadata')
@@ -77,7 +82,8 @@ export class FileController {
   async updateMetadata(
     @Body() updateMetadataDto: UpdateMetadataDto,
   ): Promise<{ message: string; data: any }> {
-    const updatedFile = await this.fileService.updateMetadata(updateMetadataDto);
+    const updatedFile =
+      await this.fileService.updateMetadata(updateMetadataDto);
     return {
       message: FILE_MESSAGES.FILE_UPDATE_METADATA_SUCCESS,
       data: updatedFile,
@@ -118,19 +124,6 @@ export class FileController {
     await this.fileService.finalizeUpload(updateFileSizeDto);
     return {
       message: FILE_MESSAGES.UPLOAD_FINALIZE_SUCCESS,
-    };
-  }
-
-  @Post('/share/:id')
-  @HttpCode(HttpStatus.CREATED)
-  async shareFile(
-    @Param('id') id: string,
-    @Body() shareFileDto: ShareFileDto,
-  ): Promise<{ message: string; data: { shareLink: string } }> {
-    const shareLink = await this.fileService.shareFile(id, shareFileDto);
-    return {
-      message: FILE_MESSAGES.SHARE_LINK_SUCCESS,
-      data: { shareLink },
     };
   }
 }

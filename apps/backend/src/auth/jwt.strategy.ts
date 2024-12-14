@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    // console.log('JwtStrategy Validate Triggered:', payload); 
+    // console.log('JwtStrategy Validate Triggered:', payload);
     const { sub: userId } = payload;
 
     const user = await this.prisma.user.findUnique({
@@ -28,6 +28,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Invalid token. Please log in again.');
     }
 
-    return user; 
+    return user;
   }
 }

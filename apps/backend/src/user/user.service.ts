@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -19,9 +23,11 @@ export class UserService {
   async register(registerUserDto: RegisterUserDto) {
     const { email, password } = registerUserDto;
 
-    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
     if (existingUser) {
-        throw new UnauthorizedException(USER_MESSAGES.EMAIL_ALREADY_EXISTS);
+      throw new UnauthorizedException(USER_MESSAGES.EMAIL_ALREADY_EXISTS);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -32,29 +38,38 @@ export class UserService {
       },
     });
 
-    return { id: user.id, email: user.email, createdAt: user.createdAt };
+    const token = this.generateToken(user);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        createdAt: user.createdAt,
+      },
+      token,
+    };
   }
 
   async login(loginUserDto: LoginUserDto) {
     const { email, password } = loginUserDto;
     const user = await this.prisma.user.findUnique({ where: { email } });
-  
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException(USER_MESSAGES.INVALID_CREDENTIALS);
     }
-  
-    const secret = this.configService.get<string>('JWT_SECRET');
-    const expiresIn = this.configService.get<string | number>('JWT_EXPIRES_IN_SECONDS');
-    const payload = { sub: user.id, email: user.email };
-    
-    const token = this.jwtService.sign(payload, {
-      secret,
-      expiresIn: Number(expiresIn), 
-    });
-  
-    return token;
+
+    const token = this.generateToken(user);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      token,
+    };
   }
-  
 
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -98,5 +113,19 @@ export class UserService {
 
     await this.prisma.user.delete({ where: { id: userId } });
     return true;
+  }
+
+  private generateToken(user: { id: string; email: string }): string {
+    const secret = this.configService.get<string>('JWT_SECRET');
+    const expiresIn = this.configService.get<string | number>(
+      'JWT_EXPIRES_IN_SECONDS',
+    );
+
+    const payload = { sub: user.id, email: user.email };
+
+    return this.jwtService.sign(payload, {
+      secret,
+      expiresIn: Number(expiresIn),
+    });
   }
 }

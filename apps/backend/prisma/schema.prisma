@@ -8,20 +8,25 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  files     File[]
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String?  // Optional for OAuth users
+  name        String?  // Name from OAuth provider
+  provider    String?  // OAuth provider (e.g., 'google', 'facebook')
+  providerId  String?  // Unique ID from OAuth provider
+  usedStorage Int      @default(0) // Track used storage in bytes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  files       File[]
 }
 
 model File {
   id        String   @id @default(uuid())
   ownerId   String
   fileName  String
-  fileSize  Int
+  fileSize  Int      
   s3Key     String
+  thumbnail String   @default("https://user-images.githubusercontent.com/28399150/84749918-e80a7a00-afba-11ea-9d76-b807379b52ab.png")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   owner     User     @relation(fields: [ownerId], references: [id])

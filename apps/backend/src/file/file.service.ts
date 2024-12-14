@@ -13,8 +13,7 @@ import { UploadUrlResponseDto } from './dtos/upload-url-response.dto';
 import { UpdateMetadataDto } from './dtos/update-meta-data.dto';
 import { SearchFilesDto } from './dtos/search-file.dto';
 import { UpdateFileSizeDto } from './dtos/update-file-size.dto';
-import { ShareFileDto } from './dtos/share-file.dto';
-import * as crypto from 'crypto';
+import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
 
 @Injectable()
 export class FileService {
@@ -53,23 +52,38 @@ export class FileService {
   async getAllFiles(userId: string) {
     return await this.prisma.file.findMany({ where: { ownerId: userId } });
   }
-  
+
   async getFileMetadata(fileId: string) {
     const file = await this.prisma.file.findUnique({ where: { id: fileId } });
-    if (!file) throw new NotFoundException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
+    if (!file)
+      throw new NotFoundException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
     return file;
   }
 
-  async deleteFile(fileId: string): Promise<void> {
+  async deleteFile(fileId: string): Promise<{ message: string }> {
     const file = await this.getFileMetadata(fileId);
+    if (!file) {
+      throw new NotFoundException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
+    }
+
     const bucketName = this.getBucketName();
 
     try {
-      await this.s3.deleteObject({ Bucket: bucketName, Key: file.s3Key }).promise();
+      await this.s3
+        .deleteObject({ Bucket: bucketName, Key: file.s3Key })
+        .promise();
+
       await this.prisma.file.delete({ where: { id: fileId } });
     } catch (error) {
+      if (error.code === 'NoSuchKey') {
+        throw new NotFoundException(
+          `${FILE_MESSAGES.FILE_METADATA_NOT_FOUND}: ${file.s3Key}`,
+        );
+      }
       this.handleInternalError(error, FILE_MESSAGES.FILE_DELETE_FAILED);
     }
+
+    return { message: FILE_MESSAGES.FILE_DELETE_SUCCESS };
   }
 
   async updateMetadata(updateMetadataDto: UpdateMetadataDto) {
@@ -81,7 +95,10 @@ export class FileService {
         data: { fileName },
       });
     } catch (error) {
-      this.handleInternalError(error, FILE_MESSAGES.FILE_UPDATE_METADATA_FAILED);
+      this.handleInternalError(
+        error,
+        FILE_MESSAGES.FILE_UPDATE_METADATA_FAILED,
+      );
     }
   }
 
@@ -106,13 +123,23 @@ export class FileService {
 
   async generateDownloadUrl(fileId: string): Promise<string> {
     const file = await this.getFileMetadata(fileId);
-    const bucketName = this.getBucketName();
+    const cloudFrontDomain =
+      this.configService.get<string>('CLOUDFRONT_DOMAIN');
+
+    if (!cloudFrontDomain) {
+      throw new InternalServerErrorException(
+        'CloudFront domain is not configured.',
+      );
+    }
 
     try {
-      return await this.s3.getSignedUrlPromise('getObject', {
-        Bucket: bucketName,
-        Key: file.s3Key,
-        Expires: 3600, // 1 hour
+      const fileUrl = `${cloudFrontDomain}/${file.s3Key}`;
+
+      return getSignedUrl({
+        keyPairId: this.configService.get<string>('CLOUDFRONT_KEYPAIR_ID'),
+        privateKey: this.configService.get<string>('CLOUDFRONT_PRIVATE_KEY'),
+        url: fileUrl,
+        dateLessThan: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
     } catch (error) {
       this.handleInternalError(error, FILE_MESSAGES.DOWNLOAD_URL_FAILED);
@@ -128,36 +155,11 @@ export class FileService {
         data: { fileSize },
       });
 
-      if (!file) throw new NotFoundException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
+      if (!file)
+        throw new NotFoundException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
     } catch (error) {
       this.handleInternalError(error, FILE_MESSAGES.UPLOAD_FINALIZE_FAILED);
     }
-  }
-
-  async shareFile(fileId: string, shareFileDto: ShareFileDto): Promise<string> {
-    const { permission, expiryDate } = shareFileDto;
-    const file = await this.getFileMetadata(fileId);
-
-    const linkToken = this.generateToken();
-    const shareLink = `https://yourdomain.com/share/${fileId}?token=${linkToken}`;
-
-    try {
-      await this.prisma.link.create({
-        data: {
-          fileId,
-          linkToken,
-          permissions: permission,
-          expiryDate,
-        },
-      });
-      return shareLink;
-    } catch (error) {
-      this.handleInternalError(error, FILE_MESSAGES.SHARE_LINK_FAILED);
-    }
-  }
-
-  private generateToken(): string {
-    return crypto.randomBytes(16).toString('hex');
   }
 
   private validateInput(fileName: string, fileType: string): void {
@@ -173,7 +175,9 @@ export class FileService {
   private getBucketName(): string {
     const bucketName = this.configService.get<string>('AWS_S3_BUCKET');
     if (!bucketName) {
-      throw new InternalServerErrorException('S3 bucket name is not configured.');
+      throw new InternalServerErrorException(
+        'S3 bucket name is not configured.',
+      );
     }
     return bucketName;
   }
@@ -208,7 +212,7 @@ export class FileService {
   }
 
   private handleInternalError(error: any, message: string): void {
-    console.error(error); 
+    console.error(error);
     throw new InternalServerErrorException(message);
   }
 }
