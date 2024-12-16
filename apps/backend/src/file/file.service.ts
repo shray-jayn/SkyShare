@@ -6,30 +6,37 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { S3 } from 'aws-sdk';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { getSignedUrl as getCloudFrontSignedUrl } from '@aws-sdk/cloudfront-signer';
 import { FILE_MESSAGES } from './constants/file.constants';
 import { CreateUploadUrlDto } from './dtos/create-upload-url.dto';
 import { UploadUrlResponseDto } from './dtos/upload-url-response.dto';
 import { UpdateMetadataDto } from './dtos/update-meta-data.dto';
 import { SearchFilesDto } from './dtos/search-file.dto';
 import { UpdateFileSizeDto } from './dtos/update-file-size.dto';
-import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
 
 @Injectable()
 export class FileService {
-  private readonly s3: S3;
+  private readonly s3Client: S3Client;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
   ) {
-    this.s3 = new S3({
-      accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
-      secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
+    // Initialize AWS S3 Client
+    this.s3Client = new S3Client({
       region: this.configService.get<string>('AWS_REGION'),
+      credentials: {
+        accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+        secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
+      },
     });
   }
-
   async generateUploadUrl(
     createUploadUrlDto: CreateUploadUrlDto,
     userId: string,
@@ -41,23 +48,21 @@ export class FileService {
     const bucketName = this.getBucketName();
 
     try {
-      const uploadUrl = await this.getPresignedUrl(s3Key, fileType, bucketName);
+      const command = new PutObjectCommand({
+        Bucket: bucketName,
+        Key: s3Key,
+        ContentType: fileType,
+      });
+
+      const uploadUrl = await getSignedUrl(this.s3Client, command, {
+        expiresIn: 3600, // 1 hour
+      });
+
       await this.saveFileMetadata(userId, fileName, s3Key);
       return { uploadUrl, s3Key };
     } catch (error) {
       this.handleInternalError(error, FILE_MESSAGES.UPLOAD_URL_ERROR);
     }
-  }
-
-  async getAllFiles(userId: string) {
-    return await this.prisma.file.findMany({ where: { ownerId: userId } });
-  }
-
-  async getFileMetadata(fileId: string) {
-    const file = await this.prisma.file.findUnique({ where: { id: fileId } });
-    if (!file)
-      throw new NotFoundException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
-    return file;
   }
 
   async deleteFile(fileId: string): Promise<{ message: string }> {
@@ -69,22 +74,20 @@ export class FileService {
     const bucketName = this.getBucketName();
 
     try {
-      await this.s3
-        .deleteObject({ Bucket: bucketName, Key: file.s3Key })
-        .promise();
+      const command = new DeleteObjectCommand({
+        Bucket: bucketName,
+        Key: file.s3Key,
+      });
 
+      await this.s3Client.send(command);
       await this.prisma.file.delete({ where: { id: fileId } });
+
+      return { message: FILE_MESSAGES.FILE_DELETE_SUCCESS };
     } catch (error) {
-      if (error.code === 'NoSuchKey') {
-        throw new NotFoundException(
-          `${FILE_MESSAGES.FILE_METADATA_NOT_FOUND}: ${file.s3Key}`,
-        );
-      }
       this.handleInternalError(error, FILE_MESSAGES.FILE_DELETE_FAILED);
     }
-
-    return { message: FILE_MESSAGES.FILE_DELETE_SUCCESS };
   }
+
 
   async updateMetadata(updateMetadataDto: UpdateMetadataDto) {
     const { id, fileName } = updateMetadataDto;
@@ -123,8 +126,7 @@ export class FileService {
 
   async generateDownloadUrl(fileId: string): Promise<string> {
     const file = await this.getFileMetadata(fileId);
-    const cloudFrontDomain =
-      this.configService.get<string>('CLOUDFRONT_DOMAIN');
+    const cloudFrontDomain = this.configService.get<string>('CLOUDFRONT_DOMAIN');
 
     if (!cloudFrontDomain) {
       throw new InternalServerErrorException(
@@ -133,13 +135,13 @@ export class FileService {
     }
 
     try {
-      const fileUrl = `${cloudFrontDomain}/${file.s3Key}`;
+      const fileUrl = `https://${cloudFrontDomain}/${file.s3Key}`;
 
-      return getSignedUrl({
+      return getCloudFrontSignedUrl({
+        url: fileUrl,
         keyPairId: this.configService.get<string>('CLOUDFRONT_KEYPAIR_ID'),
         privateKey: this.configService.get<string>('CLOUDFRONT_PRIVATE_KEY'),
-        url: fileUrl,
-        dateLessThan: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        dateLessThan: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 1 day expiry
       });
     } catch (error) {
       this.handleInternalError(error, FILE_MESSAGES.DOWNLOAD_URL_FAILED);
@@ -162,6 +164,17 @@ export class FileService {
     }
   }
 
+  async getAllFiles(userId: string) {
+    return await this.prisma.file.findMany({ where: { ownerId: userId } });
+  }
+
+  async getFileMetadata(fileId: string) {
+    const file = await this.prisma.file.findUnique({ where: { id: fileId } });
+    if (!file)
+      throw new NotFoundException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
+    return file;
+  }
+
   private validateInput(fileName: string, fileType: string): void {
     if (!fileName || !fileType) {
       throw new BadRequestException(FILE_MESSAGES.INVALID_INPUT);
@@ -182,20 +195,6 @@ export class FileService {
     return bucketName;
   }
 
-  private async getPresignedUrl(
-    s3Key: string,
-    fileType: string,
-    bucketName: string,
-  ): Promise<string> {
-    const params = {
-      Bucket: bucketName,
-      Key: s3Key,
-      Expires: 3600, // 1 hour
-      ContentType: fileType,
-    };
-    return await this.s3.getSignedUrlPromise('putObject', params);
-  }
-
   private async saveFileMetadata(
     userId: string,
     fileName: string,
@@ -205,11 +204,12 @@ export class FileService {
       data: {
         ownerId: userId,
         fileName,
-        fileSize: 0,
+        fileSize: 0, // Placeholder size
         s3Key,
       },
     });
   }
+
 
   private handleInternalError(error: any, message: string): void {
     console.error(error);
