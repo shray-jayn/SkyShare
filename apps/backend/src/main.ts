@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import * as morgan from 'morgan';
+import { BigIntInterceptor } from './bigint.interceptor'; 
 
 dotenv.config();
 
@@ -34,6 +35,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Apply the BigIntInterceptor globally
+  app.useGlobalInterceptors(new BigIntInterceptor());
 
   app.setGlobalPrefix('api');
 
