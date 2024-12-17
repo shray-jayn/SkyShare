@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { FileModule } from './file/file.module';
 import { AuthModule } from './auth/auth.module';
-import { LinkModule } from './link/link.module';
 import { AccessModule } from './access/access.module';
 
 @Module({
@@ -12,7 +11,6 @@ import { AccessModule } from './access/access.module';
     AuthModule,
     UserModule,
     FileModule,
-    LinkModule,
     AccessModule,
   ],
 })

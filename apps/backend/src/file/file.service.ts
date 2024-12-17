@@ -33,7 +33,9 @@ export class FileService {
       region: this.configService.get<string>('AWS_REGION'),
       credentials: {
         accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
+        secretAccessKey: this.configService.get<string>(
+          'AWS_SECRET_ACCESS_KEY',
+        ),
       },
     });
   }
@@ -88,7 +90,6 @@ export class FileService {
     }
   }
 
-
   async updateMetadata(updateMetadataDto: UpdateMetadataDto) {
     const { id, fileName } = updateMetadataDto;
 
@@ -126,7 +127,8 @@ export class FileService {
 
   async generateDownloadUrl(fileId: string): Promise<string> {
     const file = await this.getFileMetadata(fileId);
-    const cloudFrontDomain = this.configService.get<string>('CLOUDFRONT_DOMAIN');
+    const cloudFrontDomain =
+      this.configService.get<string>('CLOUDFRONT_DOMAIN');
 
     if (!cloudFrontDomain) {
       throw new InternalServerErrorException(
@@ -135,7 +137,7 @@ export class FileService {
     }
 
     try {
-      const fileUrl = `https://${cloudFrontDomain}/${file.s3Key}`;
+      const fileUrl = `${cloudFrontDomain}/${file.s3Key}`;
 
       return getCloudFrontSignedUrl({
         url: fileUrl,
@@ -209,7 +211,6 @@ export class FileService {
       },
     });
   }
-
 
   private handleInternalError(error: any, message: string): void {
     console.error(error);

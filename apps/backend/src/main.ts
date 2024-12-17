@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import * as morgan from 'morgan';
-import { BigIntInterceptor } from './bigint.interceptor'; 
+import { BigIntInterceptor } from './bigint.interceptor';
 
 dotenv.config();
 
