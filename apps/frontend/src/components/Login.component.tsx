@@ -1,10 +1,44 @@
 import React from "react";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Checkbox, Form, Input, Flex } from "antd";
+import { Button, Checkbox, Form, Input, message } from "antd";
+import { authService } from "../services/auth.service"; 
+import { useNavigate } from "react-router-dom"; 
+
 
 const LoginComponent: React.FC = () => {
-  const onFinish = (values: any) => {
-    console.log("Received values of form: ", values);
+  const navigate = useNavigate(); 
+
+  const onFinish = async (values: any) => {
+    const { email, password, remember } = values;
+
+    try {
+      const response = await authService.login({ email, password });
+
+      if (!response || !response.token) {
+        throw new Error("Invalid login credentials");
+      }
+
+      const { token } = response;
+
+      if (remember) {
+        localStorage.setItem("token", token);
+      } else {
+        sessionStorage.setItem("token", token);
+      }
+
+      message.success("Login successful!");
+
+      // Navigate to home page
+      navigate("/");
+    } catch (error: any) {
+      console.error("Login failed:", error);
+
+      if (error.message === "Email or password is incorrect!") {
+        message.error(error.message);
+      } else {
+        message.error("An error occurred while logging in. Please try again.");
+      }
+    }
   };
 
   return (
@@ -21,8 +55,14 @@ const LoginComponent: React.FC = () => {
         className="space-y-4"
       >
         <Form.Item
-          name="username"
-          rules={[{ required: true, message: "Please input your Username!" }]}
+          name="email"
+          rules={[
+            { required: true, message: "Please input your Email!" },
+            {
+              type: "email",
+              message: "The input is not a valid Email!",
+            },
+          ]}
         >
           <Input
             prefix={<UserOutlined />}
@@ -32,7 +72,9 @@ const LoginComponent: React.FC = () => {
         </Form.Item>
         <Form.Item
           name="password"
-          rules={[{ required: true, message: "Please input your Password!" }]}
+          rules={[
+            { required: true, message: "Please input your Password!" },
+          ]}
         >
           <Input.Password
             prefix={<LockOutlined />}
@@ -40,12 +82,9 @@ const LoginComponent: React.FC = () => {
             className="rounded-lg"
           />
         </Form.Item>
-        <Flex justify="space-between" align="center" className="mb-2">
+        <Form.Item name="remember" valuePropName="checked">
           <Checkbox>Remember Me</Checkbox>
-          <a href="#" className="text-blue-600">
-            Recovery Password
-          </a>
-        </Flex>
+        </Form.Item>
         <Button
           type="primary"
           htmlType="submit"
@@ -63,7 +102,7 @@ const LoginComponent: React.FC = () => {
       </p>
       <p className="mt-4 text-sm">
         Don’t have an account yet?{" "}
-        <a href="#" className="text-blue-600">
+        <a href="/signup" className="text-blue-600">
           Sign Up
         </a>
       </p>

@@ -9,16 +9,15 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-  BadRequestException,
-  NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterUserDto } from './dtos/register-user.dto';
 import { LoginUserDto } from './dtos/login-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { USER_MESSAGES } from './constants/messages';
 import { AuthGuard } from '@nestjs/passport';
+import { AuthResponse } from './interfaces/auth-responce.interface';
+import { UserProfileResponse } from './interfaces/user-profile-response.interface';
+import { UpdateProfileResponse } from './interfaces/update-profile-response.interface';
 
 @Controller('users')
 export class UserController {
@@ -26,91 +25,37 @@ export class UserController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() registerUserDto: RegisterUserDto) {
-    try {
-      const user = await this.userService.register(registerUserDto);
-      return {
-        message: USER_MESSAGES.REGISTER_SUCCESS,
-        data: user,
-      };
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException(USER_MESSAGES.REGISTER_FAILED);
-    }
+  async signUp(@Body() registerUserDto: RegisterUserDto): Promise<AuthResponse> {
+    return await this.userService.register(registerUserDto);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginUserDto: LoginUserDto) {
-    try {
-      const user = await this.userService.login(loginUserDto);
-      if (!user.token) {
-        throw new UnauthorizedException(USER_MESSAGES.INVALID_CREDENTIALS);
-      }
-      return {
-        message: USER_MESSAGES.LOGIN_SUCCESS,
-        data: user,
-      };
-    } catch (error) {
-      console.error(error);
-      throw new UnauthorizedException(USER_MESSAGES.LOGIN_FAILED);
-    }
+  async login(@Body() loginUserDto: LoginUserDto): Promise<AuthResponse> {
+    return await this.userService.login(loginUserDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   @HttpCode(HttpStatus.OK)
-  async getProfile(@Req() req) {
-    try {
-      const profile = await this.userService.getProfile(req.user.id);
-      if (!profile) {
-        throw new NotFoundException(USER_MESSAGES.PROFILE_NOT_FOUND);
-      }
-      return {
-        message: USER_MESSAGES.PROFILE_RETRIEVE_SUCCESS,
-        data: profile,
-      };
-    } catch (error) {
-      console.error(error);
-      throw new NotFoundException(USER_MESSAGES.PROFILE_NOT_FOUND);
-    }
+  async getProfile(@Req() req): Promise<UserProfileResponse> {
+    return await this.userService.getProfile(req.user.id);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Put('profile')
   @HttpCode(HttpStatus.OK)
-  async updateProfile(@Body() updateUserDto: UpdateUserDto, @Req() req) {
-    try {
-      const updatedUser = await this.userService.updateProfile(
-        req.user.id,
-        updateUserDto,
-      );
-      if (!updatedUser) {
-        throw new NotFoundException(USER_MESSAGES.PROFILE_NOT_FOUND);
-      }
-      return {
-        message: USER_MESSAGES.PROFILE_UPDATE_SUCCESS,
-        data: updatedUser,
-      };
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException(USER_MESSAGES.PROFILE_UPDATE_FAILED);
-    }
+  async updateProfile(
+    @Body() updateUserDto: UpdateUserDto,
+    @Req() req,
+  ): Promise<UpdateProfileResponse> {
+    return await this.userService.updateProfile(req.user.id, updateUserDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Delete('profile')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteProfile(@Req() req) {
-    try {
-      const result = await this.userService.deleteProfile(req.user.id);
-      if (!result) {
-        throw new NotFoundException(USER_MESSAGES.PROFILE_NOT_FOUND);
-      }
-      return;
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException(USER_MESSAGES.PROFILE_DELETE_FAILED);
-    }
+  async deleteProfile(@Req() req): Promise<void> {
+    await this.userService.deleteProfile(req.user.id);
   }
 }
