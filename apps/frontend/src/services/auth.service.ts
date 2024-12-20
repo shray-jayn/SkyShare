@@ -2,13 +2,15 @@ import { LoginRequest, LoginResponce } from "../models/auth/login.model";
 import { SignInResponce, SignUpRequest } from "../models/auth/signup.model";
 import apiClient from "./api.service";
 
-
 export const authService = {
   async register(payload: SignUpRequest): Promise<SignInResponce> {
     try {
       const response = await apiClient.post("/users/register", payload);
-      const { token } = response.data;
+      const { token, user } = response.data;
+
       localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
       return response.data;
     } catch (error) {
       console.error("Registration failed:", error);
@@ -20,18 +22,19 @@ export const authService = {
     try {
       const response = await apiClient.post("/users/login", payload);
 
-      // Check for non-200 status code
       if (response.status !== 200) {
         throw new Error("Invalid credentials");
       }
 
-      const { token } = response.data;
+      const { token, user } = response.data;
+      
       localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
       return response.data;
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Login failed:", error);
 
-      // Customize the error message
       if (error.response && error.response.status === 401) {
         throw new Error("Email or password is incorrect!");
       }
@@ -41,5 +44,6 @@ export const authService = {
 
   logout() {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
   },
 };
