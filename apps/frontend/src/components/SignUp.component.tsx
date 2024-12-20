@@ -3,10 +3,13 @@ import { Button, Form, Input, Checkbox, message } from "antd";
 import { GoogleOutlined, AppleOutlined } from "@ant-design/icons";
 import { authService } from "../services/auth.service"; 
 import { useNavigate } from "react-router-dom"; 
+import { useSetRecoilState } from "recoil";
+import { authState } from "../recoil/atoms/auth.atom";
 
 const SignUpComponent: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate(); 
+  const setAuth = useSetRecoilState(authState); 
 
   const onFinish = async (values: any) => {
     const { name, email, password } = values;
@@ -14,6 +17,13 @@ const SignUpComponent: React.FC = () => {
     try {
       
       const response = await authService.register({ name, email, password });
+      const { user, token } = response;
+
+      setAuth({
+        isAuthenticated: true,
+        user,
+        token
+      });
 
       message.success("Account created successfully!");
       console.log("Registration successful:", response);

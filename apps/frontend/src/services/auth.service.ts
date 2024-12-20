@@ -2,6 +2,7 @@ import { LoginRequest, LoginResponce } from "../models/auth/login.model";
 import { SignInResponce, SignUpRequest } from "../models/auth/signup.model";
 import apiClient from "./api.service";
 
+
 export const authService = {
   async register(payload: SignUpRequest): Promise<SignInResponce> {
     try {

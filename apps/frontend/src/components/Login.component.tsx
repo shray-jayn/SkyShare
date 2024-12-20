@@ -1,12 +1,14 @@
 import React from "react";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Checkbox, Form, Input, message } from "antd";
-import { authService } from "../services/auth.service"; 
-import { useNavigate } from "react-router-dom"; 
-
+import { authService } from "../services/auth.service";
+import { useNavigate } from "react-router-dom";
+import { useSetRecoilState } from "recoil";
+import { authState } from "../recoil/atoms/auth.atom";
 
 const LoginComponent: React.FC = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const setAuth = useSetRecoilState(authState); 
 
   const onFinish = async (values: any) => {
     const { email, password, remember } = values;
@@ -18,7 +20,13 @@ const LoginComponent: React.FC = () => {
         throw new Error("Invalid login credentials");
       }
 
-      const { token } = response;
+      const { token, user } = response;
+
+      setAuth({
+        isAuthenticated: true,
+        user,
+        token,
+      });
 
       if (remember) {
         localStorage.setItem("token", token);

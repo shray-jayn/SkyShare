@@ -85,6 +85,7 @@ export class UserService {
         user: {
           id: user.id,
           email: user.email,
+          name: user.name,
           usedStorage: user.usedStorage,
           storageQuota: user.storageQuota,
           createdAt: user.createdAt,

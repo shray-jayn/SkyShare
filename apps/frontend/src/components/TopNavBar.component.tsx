@@ -1,18 +1,37 @@
 import React, { useState } from "react";
-import { Button, Input, Modal } from "antd";
+import { Button, Input, Modal, message } from "antd";
 import { UploadOutlined, LogoutOutlined } from "@ant-design/icons";
-import UploadComponent from "../components/Upload.component"; 
+import { useSetRecoilState } from "recoil";
+import { useNavigate } from "react-router-dom";
+import { authState } from "../recoil/atoms/auth.atom";
+import UploadComponent from "../components/Upload.component";
 
 const { Search } = Input;
 
 const TopNavBar: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const setAuth = useSetRecoilState(authState); 
+  const navigate = useNavigate();
 
-  // Open Modal
+  
   const showModal = () => setIsModalVisible(true);
-
-  // Close Modal
   const handleCancel = () => setIsModalVisible(false);
+
+ 
+  const handleLogout = () => {
+    
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+
+    setAuth({
+      isAuthenticated: false,
+      user: null,
+      token: null,
+    });
+
+    message.success("You have been logged out.");
+    navigate("/login");
+  };
 
   return (
     <>
@@ -44,7 +63,7 @@ const TopNavBar: React.FC = () => {
             type="primary"
             icon={<LogoutOutlined />}
             danger
-            onClick={() => console.log("Logging out...")}
+            onClick={handleLogout} // Call logout handler
           >
             Logout
           </Button>
