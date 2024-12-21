@@ -6,34 +6,37 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  password      String? 
-  name          String? 
-  provider      String? 
-  providerId    String? 
-  role          UserRole @default(USER)
-  usedStorage   BigInt   @default(0) 
-  storageQuota  BigInt   @default(1073741824) // 1 GB
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  files         File[]
+  id             String   @id @default(uuid())
+  email          String   @unique
+  password       String? 
+  name           String? 
+  provider       String? 
+  providerId     String? 
+  role           UserRole @default(USER)
+  usedStorage    BigInt   @default(0) 
+  storageQuota   BigInt   @default(1073741824) 
+  profilePicture String? 
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  files          File[]
 }
 
+
 model File {
-  id        String      @id @default(uuid())
-  ownerId   String
-  fileName  String
-  fileSize  BigInt     
-  s3Key     String
-  thumbnail String      @default("https://default-thumbnail.png")
-  status    FileStatus  @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  owner     User        @relation(fields: [ownerId], references: [id])
-  links     Link[]
+  id          String      @id @default(uuid())
+  ownerId     String
+  fileName    String
+  fileSize    BigInt     
+  s3Key       String
+  status      FileStatus  @default(PENDING)
+  type        String      
+  category    FileCategory
+  isFavorite  Boolean     @default(false) 
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  owner       User        @relation(fields: [ownerId], references: [id])
+  links       Link[]
 }
 model Link {
   id           String           @id @default(uuid())
@@ -79,4 +82,12 @@ enum FileStatus {
   PENDING     
   UPLOADED     
   FAILED       
+}
+
+enum FileCategory {
+  VIDEO      
+  AUDIO     
+  IMAGE     
+  DOCUMENT   
+  OTHER      
 }

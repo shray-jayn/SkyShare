@@ -41,12 +41,7 @@ const TopNavBar: React.FC = () => {
 
         {/* Centered Search Input */}
         <div className="flex-1 flex justify-center">
-          <Search
-            placeholder="Search files..."
-            allowClear
-            style={{ width: 400 }}
-            className="mx-auto"
-          />
+        <Search placeholder="input search text" enterButton="Search" size="large" loading />
         </div>
 
         {/* Right Section Buttons */}
