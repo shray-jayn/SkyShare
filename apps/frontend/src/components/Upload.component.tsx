@@ -45,9 +45,10 @@ const UploadComponent: React.FC = () => {
     try {
       const response: CreateUploadUrlResponse = await fileService.generateUploadUrl(payload);
       return response.data.uploadUrl;
-    } catch {
-      message.error("Failed to get upload URL. Please try again.");
-      throw new Error("Failed to fetch upload URL.");
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to get upload URL.";
+      // Only display one error message
+      throw new Error(errorMessage);
     }
   };
 
@@ -55,7 +56,7 @@ const UploadComponent: React.FC = () => {
     setTimeout(() => {
       fileList.length = 0;
       uploadListRef.current = [];
-    }, 1000); 
+    }, 1000);
   };
 
   const uploadProps: UploadProps = {
@@ -77,17 +78,17 @@ const UploadComponent: React.FC = () => {
           onSuccess?.("File uploaded successfully", file);
           message.success(`${(file as File).name} uploaded successfully.`);
 
-          // Check if all files are uploaded
+          // Clear upload list if all files are uploaded
           if (uploadListRef.current.every((item) => item.status === "done")) {
             clearUploadList(uploadListRef.current);
           }
         } else {
-          onError?.(new Error("Upload failed"));
-          message.error(`${(file as File).name} upload failed.`);
+          throw new Error("Upload failed");
         }
-      } catch {
-        onError?.(new Error("Upload failed"));
-        message.error("Failed to upload file. Please try again.");
+      } catch (error: any) {
+        const errorMessage = error.message || "Failed to upload file.";
+        onError?.(new Error(errorMessage));
+        message.error(errorMessage);
       }
     },
     onChange(info) {
@@ -102,7 +103,14 @@ const UploadComponent: React.FC = () => {
       }
 
       if (status === "error") {
-        message.error(`${info.file.name} upload failed.`);
+        // Display a single error message
+        const existingError = uploadListRef.current.find(
+          (item) => item.uid === info.file.uid && item.status === "error"
+        );
+
+        if (!existingError) {
+          message.error(`${info.file.name} upload failed.`);
+        }
       }
     },
     onDrop(e) {

@@ -10,13 +10,15 @@ import {
 } from "../models/file/file.model";
 
 export const fileService = {
-  async generateUploadUrl(
-    payload: CreateUploadUrlRequest
-  ): Promise<CreateUploadUrlResponse> {
+  async generateUploadUrl(payload: CreateUploadUrlRequest): Promise<CreateUploadUrlResponse> {
     try {
       const response = await apiClient.post("/files/upload-url", payload);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message || "Insufficient storage quota.";
+        throw new Error(errorMessage);
+      }
       console.error("Failed to generate upload URL:", error);
       throw new Error("Unable to generate upload URL. Please try again.");
     }

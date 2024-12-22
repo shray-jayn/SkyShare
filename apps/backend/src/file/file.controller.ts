@@ -25,6 +25,7 @@ import { GetAllFilesResponseDto } from './dtos/get-all-files-response.dto';
 import { FileMetadataResponseDto } from './dtos/file-metadata-response.dto';
 import { SearchFilesResponseDto } from './dtos/search-files-response.dto';
 import { DownloadUrlResponseDto } from './dtos/download-url-response.dto';
+import { FileStatus } from '@prisma/client';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('files')
@@ -104,4 +105,23 @@ export class FileController {
     await this.fileService.finalizeUpload(updateFileSizeDto);
     return { message: FILE_MESSAGES.UPLOAD_FINALIZE_SUCCESS };
   }
+
+  @Post('update-status/:id')
+  @HttpCode(HttpStatus.OK)
+  async updateFileStatus(
+    @Param('id') fileId: string,
+    @Body('status') status: FileStatus,
+  ): Promise<{ message: string }> {
+    return await this.fileService.updateFileStatus(fileId, status);
+  }
+
+  @Put('toggle-favorite/:id')
+  @HttpCode(HttpStatus.OK)
+  async toggleFavorite(
+    @Param('id') fileId: string,
+    @Body('isFavorite') isFavorite: boolean,
+  ): Promise<{ message: string }> {
+    return await this.fileService.toggleFavorite(fileId, isFavorite);
+  }
+
 }
