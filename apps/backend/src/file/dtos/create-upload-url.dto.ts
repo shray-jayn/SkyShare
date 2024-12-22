@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty } from 'class-validator';
-
+import { IsString, IsNotEmpty, IsEnum, IsNumber } from 'class-validator';
+import { FileCategory } from '@prisma/client'; 
 export class CreateUploadUrlDto {
   @IsString()
   @IsNotEmpty()
@@ -8,4 +8,12 @@ export class CreateUploadUrlDto {
   @IsString()
   @IsNotEmpty()
   fileType: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  fileSize: number; 
+
+  @IsEnum(FileCategory) 
+  @IsNotEmpty()
+  category: FileCategory; 
 }

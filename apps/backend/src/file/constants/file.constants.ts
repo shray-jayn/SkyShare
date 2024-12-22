@@ -17,4 +17,6 @@ export const FILE_MESSAGES = {
   UPLOAD_FINALIZE_FAILED: 'Failed to finalize file upload.',
   SHARE_LINK_SUCCESS: 'File share link generated successfully.',
   SHARE_LINK_FAILED: 'Failed to generate file share link.',
+  FILE_RETRIEVE_FAILED: 'Failed to retrieve files.',
+  FILE_METADATA_SAVE_FAILED: 'Failed to save file metadata.',
 };
