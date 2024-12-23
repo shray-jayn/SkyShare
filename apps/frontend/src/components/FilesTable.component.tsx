@@ -9,8 +9,8 @@ const RecentFilesTable: React.FC = () => {
   const [fileData, setFileData] = useState<FileMetadata[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState<PaginationRequest>({
-    limit: 8, // Items per page
-    offset: 0, // Start position
+    limit: 8,
+    offset: 0, 
   });
 
   const fetchFiles = async () => {
