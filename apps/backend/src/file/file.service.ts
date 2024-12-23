@@ -23,7 +23,8 @@ import { GetAllFilesResponseDto } from './dtos/get-all-files-response.dto';
 import { FileMetadataResponseDto } from './dtos/file-metadata-response.dto';
 import { SearchFilesResponseDto } from './dtos/search-files-response.dto';
 import { DownloadUrlResponseDto } from './dtos/download-url-response.dto';
-import { FileCategory, FileStatus } from '@prisma/client';
+import { FileCategory, FileStatus, Prisma } from '@prisma/client';
+import { GetFilesRequestDto } from './dtos/get-files-request.dto';
 
 @Injectable()
 export class FileService {
@@ -138,14 +139,58 @@ export class FileService {
     }
   }
 
-  async getAllFiles(userId: string): Promise<GetAllFilesResponseDto[]> {
+  async getAllFiles(
+    userId: string,
+    getFilesDto: GetFilesRequestDto
+  ): Promise<GetAllFilesResponseDto[]> {
+    const { limit, offset, orderBy = [] } = getFilesDto;
+  
     try {
-      return await this.prisma.file.findMany({ where: { ownerId: userId } });
+      const orderByFields: Prisma.Enumerable<Prisma.FileOrderByWithRelationInput> = orderBy.length
+        ? orderBy.map((field) => ({
+            [field.field === "filename" ? "fileName" : field.field]: field.direction,
+          }))
+        : [{ createdAt: "desc" }];
+  
+      // Fetch files with owner information
+      const files = await this.prisma.file.findMany({
+        where: { ownerId: userId },
+        take: limit,
+        skip: offset,
+        orderBy: orderByFields,
+        include: {
+          owner: {
+            select: {
+              name: true,
+              profilePicture: true,
+            },
+          },
+        },
+      });
+  
+      // Map files and include owner's name and profile picture in the response
+      return files.map((file) => ({
+        id: file.id,
+        fileName: file.fileName,
+        fileSize: file.fileSize,
+        type: file.type,
+        category: file.category,
+        isFavorite: file.isFavorite,
+        status: file.status,
+        createdAt: file.createdAt.toISOString(),
+        updatedAt: file.updatedAt.toISOString(),
+        owner: {
+          name: file.owner?.name || null,
+          profilePicture: file.owner?.profilePicture || null,
+        },
+      }));
     } catch (error) {
-      console.error('Error retrieving files:', error);
+      console.error("Error retrieving files with pagination and ordering:", error);
       throw new InternalServerErrorException(FILE_MESSAGES.FILE_RETRIEVE_FAILED);
     }
   }
+  
+  
 
   async getFileMetadata(fileId: string): Promise<FileMetadataResponseDto> {
     try {

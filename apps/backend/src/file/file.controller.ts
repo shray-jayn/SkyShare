@@ -26,6 +26,7 @@ import { FileMetadataResponseDto } from './dtos/file-metadata-response.dto';
 import { SearchFilesResponseDto } from './dtos/search-files-response.dto';
 import { DownloadUrlResponseDto } from './dtos/download-url-response.dto';
 import { FileStatus } from '@prisma/client';
+import { GetFilesRequestDto } from './dtos/get-files-request.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('files')
@@ -45,11 +46,15 @@ export class FileController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getAllFiles(@Req() req: any): Promise<{ message: string; data: GetAllFilesResponseDto[] }> {
+  async getAllFiles(
+    @Req() req: any,
+    @Query() getFilesDto: GetFilesRequestDto, // Ensure this uses @Query
+  ): Promise<{ message: string; data: GetAllFilesResponseDto[] }> {
     const userId = req.user.id;
-    const files = await this.fileService.getAllFiles(userId);
+    const files = await this.fileService.getAllFiles(userId, getFilesDto);
     return { message: FILE_MESSAGES.FILES_RETRIEVED_SUCCESS, data: files };
   }
+
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)

@@ -4,6 +4,6 @@ export class SearchFilesResponseDto {
     fileSize: bigint;
     type: string;
     category: string;
-    createdAt: Date;
+    createdAt: Date | string;;
   }
   

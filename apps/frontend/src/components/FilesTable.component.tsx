@@ -1,171 +1,118 @@
-import React from "react";
-import { Table, Avatar, Tag } from "antd";
-import type { ColumnsType } from "antd/es/table";
-
-// Define Data Structure
-interface FileDataType {
-  key: string;
-  name: string;
-  tag: string;
-  created: string;
-  owner: string;
-  avatar: string; // Owner's avatar URL
-  lastModified: string;
-}
-
-// Sample Data for the Table
-const data: FileDataType[] = [
-  {
-    key: "1",
-    name: "Task images",
-    tag: "#defect",
-    created: "12 Oct 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=1",
-    lastModified: "1 day ago",
-  },
-  {
-    key: "2",
-    name: "id.jpg",
-    tag: "#3ddesign",
-    created: "1 Oct 2025",
-    owner: "Furuya Rei",
-    avatar: "https://i.pravatar.cc/40?img=2",
-    lastModified: "14 days ago",
-  },
-  {
-    key: "3",
-    name: "Assets",
-    tag: "#3dgtlf",
-    created: "14 Feb 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=3",
-    lastModified: "2 days ago",
-  },
-  {
-    key: "4",
-    name: "Documentation",
-    tag: "#document",
-    created: "27 Feb 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=4",
-    lastModified: "8 days ago",
-  },
-  {
-    key: "5",
-    name: "Task images",
-    tag: "#defect",
-    created: "12 Oct 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=1",
-    lastModified: "1 day ago",
-  },
-  {
-    key: "6",
-    name: "id.jpg",
-    tag: "#3ddesign",
-    created: "1 Oct 2025",
-    owner: "Furuya Rei",
-    avatar: "https://i.pravatar.cc/40?img=2",
-    lastModified: "14 days ago",
-  },
-  {
-    key: "7",
-    name: "Assets",
-    tag: "#3dgtlf",
-    created: "14 Feb 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=3",
-    lastModified: "2 days ago",
-  },
-  {
-    key: "8",
-    name: "Documentation",
-    tag: "#document",
-    created: "27 Feb 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=4",
-    lastModified: "8 days ago",
-  },
-  {
-    key: "9",
-    name: "Task images",
-    tag: "#defect",
-    created: "12 Oct 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=1",
-    lastModified: "1 day ago",
-  },
-  {
-    key: "10",
-    name: "id.jpg",
-    tag: "#3ddesign",
-    created: "1 Oct 2025",
-    owner: "Furuya Rei",
-    avatar: "https://i.pravatar.cc/40?img=2",
-    lastModified: "14 days ago",
-  },
-  {
-    key: "11",
-    name: "Assets",
-    tag: "#3dgtlf",
-    created: "14 Feb 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=3",
-    lastModified: "2 days ago",
-  },
-  {
-    key: "12",
-    name: "Documentation",
-    tag: "#document",
-    created: "27 Feb 2025",
-    owner: "Shuichi Akai",
-    avatar: "https://i.pravatar.cc/40?img=4",
-    lastModified: "8 days ago",
-  },
-];
-
-// Define Table Columns
-const columns: ColumnsType<FileDataType> = [
-  {
-    title: "Asset Name",
-    dataIndex: "name",
-    key: "name",
-    render: (text) => <span className="font-medium text-gray-700">{text}</span>,
-  },
-  {
-    title: "Tag",
-    dataIndex: "tag",
-    key: "tag",
-    render: (tag) => <Tag color="blue">{tag}</Tag>,
-  },
-  {
-    title: "Created",
-    dataIndex: "created",
-    key: "created",
-  },
-  {
-    title: "Owner",
-    dataIndex: "owner",
-    key: "owner",
-    render: (text, record) => (
-      <div className="flex items-center gap-2">
-        <Avatar src={record.avatar} />
-        <span>{text}</span>
-      </div>
-    ),
-  },
-  {
-    title: "Last Modified",
-    dataIndex: "lastModified",
-    key: "lastModified",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { Table, Avatar, Tooltip, Button, message } from "antd";
+import { StarOutlined, StarFilled } from "@ant-design/icons";
+import { fileService } from "../services/file.service";
+import type { FileMetadata, PaginationRequest } from "../models/file/file.model";
+import type { TablePaginationConfig } from "antd/es/table";
 
 const RecentFilesTable: React.FC = () => {
+  const [fileData, setFileData] = useState<FileMetadata[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [pagination, setPagination] = useState<PaginationRequest>({
+    limit: 8, // Items per page
+    offset: 0, // Start position
+  });
+
+  const fetchFiles = async () => {
+    try {
+      setLoading(true);
+      const files = await fileService.getAllFiles(pagination);
+      setFileData(files);
+    } catch (error: any) {
+      message.error(error.message || "Failed to fetch files.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFavorite = async (key: string, isFavorite: boolean) => {
+    try {
+      await fileService.toggleFavorite(key, isFavorite);
+      setFileData((prevData) =>
+        prevData.map((file) =>
+          file.id === key ? { ...file, isFavorite: !file.isFavorite } : file
+        )
+      );
+    } catch (error: any) {
+      message.error("Failed to update favorite status.");
+    }
+  };
+
+  useEffect(() => {
+    fetchFiles(); // Fetch data whenever pagination changes
+  }, [pagination]);
+
+  const handleTableChange = (paginationConfig: TablePaginationConfig) => {
+    // Calculate offset and limit for the clicked page
+    const currentPage = paginationConfig.current || 1;
+    const pageSize = paginationConfig.pageSize || 8;
+
+    setPagination({
+      limit: pageSize,
+      offset: (currentPage - 1) * pageSize,
+    });
+  };
+
+  const columns = [
+    {
+      title: "Asset Name",
+      dataIndex: "fileName",
+      key: "fileName",
+      render: (text: string) => <span className="font-medium text-gray-700">{text}</span>,
+    },
+    {
+      title: "Favorite",
+      dataIndex: "isFavorite",
+      key: "isFavorite",
+      render: (isFavorite: boolean, record: FileMetadata) => (
+        <Tooltip title={isFavorite ? "Remove from favorites" : "Add to favorites"}>
+          <Button
+            type="text"
+            icon={isFavorite ? <StarFilled style={{ color: "#fadb14" }} /> : <StarOutlined />}
+            onClick={() => toggleFavorite(record.id, !isFavorite)}
+          />
+        </Tooltip>
+      ),
+    },
+    {
+      title: "Created",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => new Date(date).toLocaleDateString(),
+    },
+    {
+      title: "Owner",
+      dataIndex: "ownerAvatar",
+      key: "ownerAvatar",
+      render: (_: string, record: FileMetadata) => (
+        <div className="flex items-center gap-2">
+          <Avatar src={record.owner.profilePicture || `https://i.pravatar.cc/40?u=${record.id}`} />
+          <span>{record.owner.name}</span>
+        </div>
+      ),
+    },
+    {
+      title: "Last Modified",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      render: (date: string) => new Date(date).toLocaleDateString(),
+    },
+  ];
+
   return (
     <div className="p-4 bg-white shadow-sm rounded-lg">
-      <Table columns={columns} dataSource={data} pagination={{ pageSize: 8 }} />
+      <Table
+        columns={columns}
+        dataSource={fileData}
+        loading={loading}
+        pagination={{
+          current: pagination.offset / pagination.limit + 1,
+          pageSize: pagination.limit,
+          total: 100, // Replace with actual total count from the backend
+        }}
+        rowKey={(record) => record.id}
+        onChange={handleTableChange}
+      />
     </div>
   );
 };

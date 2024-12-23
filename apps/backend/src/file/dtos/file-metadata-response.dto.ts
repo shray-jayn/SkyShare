@@ -5,7 +5,7 @@ export class FileMetadataResponseDto {
     type: string;
     category: string;
     s3Key: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: Date | string;;
+    updatedAt: Date | string;;
   }
   
