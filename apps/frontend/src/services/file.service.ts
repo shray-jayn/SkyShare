@@ -9,6 +9,7 @@ import {
   SearchFilesRequest,
   SearchFilesResponse,
   DownloadUrlResponse,
+  CountRequest,
 } from "../models/file/file.model";
 
 export const fileService = {
@@ -25,13 +26,10 @@ export const fileService = {
 
   async getAllFiles(pagination: PaginationRequest): Promise<FileMetadata[]> {
     try {
-      const { limit, offset, orderBy = [] } = pagination;
-      const orderByFields = orderBy.map((field) => ({
-        [field.field]: field.direction,
-      }));
-
+      const { limit, offset, category} = pagination;
+      
       const response = await apiClient.get("/files", {
-        params: { limit, offset, orderBy: orderByFields },
+        params: { limit, offset, category },
       });
 
       return response.data.data.map((file: any) => ({
@@ -42,6 +40,22 @@ export const fileService = {
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Unable to retrieve files.";
       console.error("Failed to retrieve files:", errorMessage);
+      throw new Error(errorMessage);
+    }
+  },
+
+  async getAllFilesCount(pagination: CountRequest): Promise<number> {
+    try {
+      const { category } = pagination;
+  
+      const response = await apiClient.get("/files/count", {
+        params: { category },
+      });
+  
+      return response.data.count; // Return the count directly
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Unable to retrieve file count.";
+      console.error("Failed to retrieve file count:", errorMessage);
       throw new Error(errorMessage);
     }
   },

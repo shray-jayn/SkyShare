@@ -24,7 +24,9 @@ import { FileMetadataResponseDto } from './dtos/file-metadata-response.dto';
 import { SearchFilesResponseDto } from './dtos/search-files-response.dto';
 import { DownloadUrlResponseDto } from './dtos/download-url-response.dto';
 import { FileCategory, FileStatus, Prisma } from '@prisma/client';
-import { GetFilesRequestDto } from './dtos/get-files-request.dto';
+import { GetFilesByCategoryRequestDto } from './dtos/get-files-by-category-request.dto';
+import { GetFilesCountByCategoryRequestDto } from './dtos/get-file-count-categort-request.dto';
+
 
 @Injectable()
 export class FileService {
@@ -141,23 +143,23 @@ export class FileService {
 
   async getAllFiles(
     userId: string,
-    getFilesDto: GetFilesRequestDto
+    getFilesDto: GetFilesByCategoryRequestDto,
   ): Promise<GetAllFilesResponseDto[]> {
-    const { limit, offset, orderBy = [] } = getFilesDto;
+    const { limit, category, offset } = getFilesDto;
   
     try {
-      const orderByFields: Prisma.Enumerable<Prisma.FileOrderByWithRelationInput> = orderBy.length
-        ? orderBy.map((field) => ({
-            [field.field === "filename" ? "fileName" : field.field]: field.direction,
-          }))
-        : [{ createdAt: "desc" }];
+      
+    
+      const whereClause: Prisma.FileWhereInput = {
+        ownerId: userId,
+        ...(category ? { category: category as FileCategory } : {}), 
+      };
   
       // Fetch files with owner information
       const files = await this.prisma.file.findMany({
-        where: { ownerId: userId },
+        where: whereClause,
         take: limit,
         skip: offset,
-        orderBy: orderByFields,
         include: {
           owner: {
             select: {
@@ -189,8 +191,6 @@ export class FileService {
       throw new InternalServerErrorException(FILE_MESSAGES.FILE_RETRIEVE_FAILED);
     }
   }
-  
-  
 
   async getFileMetadata(fileId: string): Promise<FileMetadataResponseDto> {
     try {
@@ -201,6 +201,24 @@ export class FileService {
       console.error('Error retrieving file metadata:', error);
       throw new InternalServerErrorException(FILE_MESSAGES.FILE_METADATA_NOT_FOUND);
     }
+  }
+
+  async getAllFileCount(userId: string, getFilesCategoryDto: GetFilesCountByCategoryRequestDto ): Promise<number> {
+    try {
+     const {category} = getFilesCategoryDto;
+
+     const whereClause: Prisma.FileWhereInput = {
+      ownerId: userId,
+      ...(category ? { category: category as FileCategory } : {}), 
+    };
+      const count = await this.prisma.file.count({
+        where: whereClause,
+      });
+      return count;
+    } catch (error) {
+      console.error(`Failed to fetch file count for user: ${userId}`, error);
+      throw new InternalServerErrorException('Failed to fetch total file count');
+    } 
   }
 
   async updateFileStatus(fileId: string, status: FileStatus): Promise<{ message: string }> {

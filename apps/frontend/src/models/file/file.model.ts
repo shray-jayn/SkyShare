@@ -2,7 +2,11 @@
 export interface PaginationRequest {
   limit: number;
   offset: number;
-  orderBy?: OrderByField[];
+  category?: string;
+}
+
+export interface CountRequest {
+  category?: string;
 }
 
 export interface OrderByField {

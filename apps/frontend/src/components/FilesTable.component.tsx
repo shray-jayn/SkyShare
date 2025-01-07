@@ -2,28 +2,49 @@ import React, { useState, useEffect } from "react";
 import { Table, Avatar, Tooltip, Button, message } from "antd";
 import { StarOutlined, StarFilled } from "@ant-design/icons";
 import { fileService } from "../services/file.service";
-import type { FileMetadata, PaginationRequest } from "../models/file/file.model";
+import { useNavigate } from "react-router-dom";
+import type {
+  FileMetadata,
+  PaginationRequest,
+} from "../models/file/file.model";
 import type { TablePaginationConfig } from "antd/es/table";
 
-const RecentFilesTable: React.FC = () => {
+interface FilesTableProps {
+  category?: string;
+}
+
+const FilesTable: React.FC<FilesTableProps> = ({ category }) => {
   const [fileData, setFileData] = useState<FileMetadata[]>([]);
+  const [fileCount, setFileCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState<PaginationRequest>({
     limit: 8,
-    offset: 0, 
+    offset: 0,
+    category,
   });
 
+  const navigate = useNavigate();
+
+  
   const fetchFiles = async () => {
     try {
       setLoading(true);
-      const files = await fileService.getAllFiles(pagination);
+  
+      const [files, countResponse] = await Promise.all([
+        fileService.getAllFiles(pagination),
+        fileService.getAllFilesCount({ category }),
+      ]);
+  
       setFileData(files);
+      setFileCount(countResponse); 
+
     } catch (error: any) {
       message.error(error.message || "Failed to fetch files.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const toggleFavorite = async (key: string, isFavorite: boolean) => {
     try {
@@ -39,18 +60,18 @@ const RecentFilesTable: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchFiles(); // Fetch data whenever pagination changes
-  }, [pagination]);
+    fetchFiles();
+  }, [pagination, category]);
 
   const handleTableChange = (paginationConfig: TablePaginationConfig) => {
-    // Calculate offset and limit for the clicked page
     const currentPage = paginationConfig.current || 1;
     const pageSize = paginationConfig.pageSize || 8;
 
-    setPagination({
+    setPagination((prev) => ({
+      ...prev,
       limit: pageSize,
       offset: (currentPage - 1) * pageSize,
-    });
+    }));
   };
 
   const columns = [
@@ -58,7 +79,8 @@ const RecentFilesTable: React.FC = () => {
       title: "Asset Name",
       dataIndex: "fileName",
       key: "fileName",
-      render: (text: string) => <span className="font-medium text-gray-700">{text}</span>,
+      render: (text: string, record: FileMetadata) => 
+      <span className="font-medium text-gray-700" onClick={() => navigate(`/files/${record.id}`)}>{text}</span>,
     },
     {
       title: "Favorite",
@@ -108,7 +130,7 @@ const RecentFilesTable: React.FC = () => {
         pagination={{
           current: pagination.offset / pagination.limit + 1,
           pageSize: pagination.limit,
-          total: 100, // Replace with actual total count from the backend
+          total: fileCount
         }}
         rowKey={(record) => record.id}
         onChange={handleTableChange}
@@ -117,4 +139,4 @@ const RecentFilesTable: React.FC = () => {
   );
 };
 
-export default RecentFilesTable;
+export default FilesTable;

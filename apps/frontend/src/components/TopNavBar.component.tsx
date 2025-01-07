@@ -40,8 +40,14 @@ const TopNavBar: React.FC = () => {
         <div className="w-1/4"></div>
 
         {/* Centered Search Input */}
-        <div className="flex-1 flex justify-center">
-        <Search placeholder="input search text" enterButton="Search" size="large" loading />
+        <div className="w-full md:flex-1 flex justify-center mb-4 md:mb-0">
+          <Search
+            placeholder="Search..."
+            enterButton="Search"
+            size="large"
+            className="w-full md:w-3/4 lg:w-1/2"
+            loading
+          />
         </div>
 
         {/* Right Section Buttons */}
@@ -52,7 +58,7 @@ const TopNavBar: React.FC = () => {
             className="text-blue-600"
             onClick={showModal} // Open the modal
           >
-            Upload to Cloud
+            Upload
           </Button>
           <Button
             type="primary"

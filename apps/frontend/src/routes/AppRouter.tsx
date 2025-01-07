@@ -1,18 +1,20 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Home from "../pages/Home.page";
-import Login from "../pages/Login.page";
-import NotFound from "../pages/NotFound.page";
-import SignUp from "../pages/SignUp.page";
 import { useRecoilValue } from "recoil";
 import { authState } from "../recoil/atoms/auth.atom";
-import Audios from "../pages/Audios.page";
-import Documents from "../pages/Documents.page";
+
+import Home from "../pages/Home.page";
+import Login from "../pages/Login.page";
+import SignUp from "../pages/SignUp.page";
 import Shared from "../pages/Shared.page";
+import Documents from "../pages/Documents.page";
 import Pictures from "../pages/Pictures.page";
 import Videos from "../pages/Videos.page";
+import Audios from "../pages/Audios.page";
+import NotFound from "../pages/NotFound.page";
+import FileDetail from "../pages/FileDetail.page";
 
-// RequireAuth component to protect private routes
+// Component to protect private routes
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const auth = useRecoilValue(authState);
 
@@ -41,27 +43,27 @@ const AppRouter: React.FC = () => {
             </RequireAuth>
           }
         />
-         <Route
-          path="/shared "
+        <Route
+          path="/shared"
           element={
             <RequireAuth>
-              <Shared/>
+              <Shared />
             </RequireAuth>
           }
         />
-         <Route
+        <Route
           path="/documents"
           element={
             <RequireAuth>
-              <Documents/>
+              <Documents />
             </RequireAuth>
           }
         />
-         <Route
+        <Route
           path="/pictures"
           element={
             <RequireAuth>
-              <Pictures/>
+              <Pictures />
             </RequireAuth>
           }
         />
@@ -69,15 +71,24 @@ const AppRouter: React.FC = () => {
           path="/videos"
           element={
             <RequireAuth>
-              <Videos/>
+              <Videos />
             </RequireAuth>
           }
         />
-         <Route
+        <Route
           path="/audios"
           element={
             <RequireAuth>
-              <Audios/>
+              <Audios />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/files/:fileId"
+          element={
+            <RequireAuth>
+              <FileDetail />
             </RequireAuth>
           }
         />

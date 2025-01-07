@@ -26,7 +26,9 @@ import { FileMetadataResponseDto } from './dtos/file-metadata-response.dto';
 import { SearchFilesResponseDto } from './dtos/search-files-response.dto';
 import { DownloadUrlResponseDto } from './dtos/download-url-response.dto';
 import { FileStatus } from '@prisma/client';
-import { GetFilesRequestDto } from './dtos/get-files-request.dto';
+import { GetFilesByCategoryRequestDto } from './dtos/get-files-by-category-request.dto';
+import { GetFilesCountByCategoryRequestDto } from './dtos/get-file-count-categort-request.dto';
+
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('files')
@@ -48,11 +50,23 @@ export class FileController {
   @HttpCode(HttpStatus.OK)
   async getAllFiles(
     @Req() req: any,
-    @Query() getFilesDto: GetFilesRequestDto, // Ensure this uses @Query
+    @Query() getFilesDto:  GetFilesByCategoryRequestDto,
   ): Promise<{ message: string; data: GetAllFilesResponseDto[] }> {
     const userId = req.user.id;
     const files = await this.fileService.getAllFiles(userId, getFilesDto);
     return { message: FILE_MESSAGES.FILES_RETRIEVED_SUCCESS, data: files };
+  }
+
+
+  @Get('/count')
+  @HttpCode(HttpStatus.OK)
+  async getAllFilesCount(
+    @Req() req: any,
+    @Query() getFilesCategoryDto: GetFilesCountByCategoryRequestDto,
+  ): Promise<{ count: number }> { 
+    const userId = req.user.id;
+    const count = await this.fileService.getAllFileCount(userId, getFilesCategoryDto);
+    return { count };
   }
 
 
