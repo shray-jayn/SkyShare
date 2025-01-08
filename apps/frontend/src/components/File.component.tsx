@@ -1,30 +1,41 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { fileService } from "../services/file.service";
 import { Button, message, Spin } from "antd";
+import type { FileMetadata } from "../models/file/file.model";
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import PDFViewer from "./Pdf.component";
 
 const FileView: React.FC = () => {
-  const [loading, setLoading] = useState<boolean>(false);
+  const { fileId } = useParams<{ fileId: string }>();
+  const [file, setFile] = useState<FileMetadata | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [downloadUrl, setDownloadUrl] = useState<string>("");
 
-  // Hardcoded file metadata
-  const file = {
-    id: "03f32685-f38e-4a50-b8cc-7a7bd7bf7e56",
-    ownerId: "31137eb2-069d-4a50-b8cc-7a7bd7bf7e56",
-    fileName: "IMG_1638.MP4",
-    fileSize: "373762",
-    s3Key: "31137eb2-069d-4a50-b8cc-7a7bd7bf7e56/1734881076928_IMG_1638.MP4",
-    status: "PENDING",
-    type: "video/mp4",
-    category: "VIDEO",
-    isFavorite: false,
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-05T00:00:00Z",
-    owner: { name: "John Doe" }, // Mock owner details
+  // Fetch file details
+  const fetchFileDetails = async () => {
+    try {
+      setLoading(true);
+
+      const fileData = await fileService.getFileMetadata(fileId!);
+      setFile(fileData);
+
+      const downloadUrlResponse = await fileService.generateDownloadUrl(fileId!);
+      setDownloadUrl(downloadUrlResponse.downloadUrl);
+    } catch (error: any) {
+      message.error(error.message || "Failed to fetch file details.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Hardcoded download URL
-  const downloadUrl =
-    "https://d1os3qjhk03lcq.cloudfront.net/31137eb2-069d-4a50-b8cc-7a7bd7bf7e56/1734881076928_IMG_1638.MP4?Expires=1736349169&Key-Pair-Id=KR54SWHU2CEU0&Signature=EqOFhws7BuCYMPpPclrOV93OVv3YaWYp-5Po8~k-~TtCf8zJWfyptbSLPRdlo9TIx3TNIADHpyRc-Qdg7Hu0wM-~kEbCg6b7527FLWsj8~Ae4qNJSaK~j5N8xU2s~nEYueCQkgXk6RcEDyt4ZpIN-xMb6VPv6KxrsP-NOrpI9~Lm6V8HNE5TT5KaLrGnF4SYNOkos~a~S3ZTCjC3lDtI0wctQzhVqfIib-rGui9fnahvcHBu-Q7gAHluEBE1NOUZ3VvECyP60L5qiNTBSr794GK8XCV3f1HGPffF5bfC5P8keOGP-lPnvB0I0x6u88T9EKEidbRXpVmjI5o-Gzfb7g__";
-
+  // Handle file download
   const handleDownload = async () => {
+    if (!downloadUrl) {
+      message.error("Download URL is not available.");
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -37,7 +48,7 @@ const FileView: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = file.fileName || "download";
+      a.download = file?.fileName || "download";
       a.click();
       window.URL.revokeObjectURL(url);
 
@@ -49,42 +60,103 @@ const FileView: React.FC = () => {
     }
   };
 
+  // Render file preview
   const renderFilePreview = () => {
+    if (!file || !downloadUrl) {
+      return null;
+    }
+
     if (file.type.startsWith("video")) {
       return (
-        <video controls width="100%" className="rounded-lg shadow-md">
-          <source src={downloadUrl} type={file.type} />
+        <video
+          src={downloadUrl}
+          controls
+          width="100%"
+          height="500px"
+          className="rounded-lg shadow-md"
+        >
           Your browser does not support the video tag.
         </video>
       );
     } else if (file.type.startsWith("image")) {
       return <img src={downloadUrl} alt={file.fileName} className="rounded-lg shadow-md" />;
+    } else if (file.type.startsWith("audio")) {
+      return (
+        <audio src={downloadUrl} controls className="rounded-lg shadow-md">
+          Your browser does not support the audio tag.
+        </audio>
+      );
+    }
+    else if (file.type === "application/pdf") {
+      return <PDFViewer fileUrl={downloadUrl} />;
+    }
+    
+    
+     else if (
+      [
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ].includes(file.type)
+    ) {
+      return (
+        <iframe
+          src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+            downloadUrl
+          )}`}
+          width="100%"
+          height="500px"
+          className="rounded-lg shadow-md"
+          title={file.fileName}
+        />
+      );
     } else {
       return (
-        <p className="text-gray-600">
-          Preview is not available for this file type. You can download it using the button below.
-        </p>
+        <div className="text-center text-gray-600">
+          <p className="mb-4">
+            Preview is not available for this file type. You can download it using the button below.
+          </p>
+          <Button type="primary" onClick={() => window.open(downloadUrl, "_blank")}>
+            Download File
+          </Button>
+        </div>
       );
     }
   };
 
+  // Fetch details on component mount
+  useEffect(() => {
+    fetchFileDetails();
+  }, [fileId]);
+
+  // Loading spinner
   if (loading) {
     return <Spin size="large" className="flex justify-center items-center h-screen" />;
   }
 
+  // Main render
   return (
     <div className="p-4 bg-white shadow-sm rounded-lg">
-      <h1 className="text-xl font-semibold">{file.fileName}</h1>
-      <p>Created: {new Date(file.createdAt).toLocaleDateString()}</p>
-      <p>Last Modified: {new Date(file.updatedAt).toLocaleDateString()}</p>
-      <p>Owner: {file.owner.name}</p>
+      {file ? (
+        <>
+          <h1 className="text-xl font-semibold">{file.fileName}</h1>
+          <p>Created: {new Date(file.createdAt).toLocaleDateString()}</p>
+          <p>Last Modified: {new Date(file.updatedAt).toLocaleDateString()}</p>
+          <p>Owner: {file.owner?.name || "Unknown Owner"}</p>
 
-      {/* File Preview */}
-      <div className="my-4">{renderFilePreview()}</div>
+          {/* File Preview */}
+          <div className="my-4">{renderFilePreview()}</div>
 
-      <Button type="primary" onClick={handleDownload}>
-        Download File
-      </Button>
+          <Button type="primary" onClick={handleDownload}>
+            Download File
+          </Button>
+        </>
+      ) : (
+        <p className="text-center text-gray-600">File not found or failed to load.</p>
+      )}
     </div>
   );
 };
