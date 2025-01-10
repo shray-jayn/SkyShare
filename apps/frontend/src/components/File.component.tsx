@@ -142,17 +142,15 @@ const FileView: React.FC = () => {
     <div className="p-4 bg-white shadow-sm rounded-lg">
       {file ? (
         <>
-          <h1 className="text-xl font-semibold">{file.fileName}</h1>
-          <p>Created: {new Date(file.createdAt).toLocaleDateString()}</p>
-          <p>Last Modified: {new Date(file.updatedAt).toLocaleDateString()}</p>
-          <p>Owner: {file.owner?.name || "Unknown Owner"}</p>
+          <h1 className="text-xl font-semibold mb-3">{file.fileName}</h1>
+          <Button type="primary" onClick={handleDownload}>
+            Download File
+          </Button>
 
           {/* File Preview */}
           <div className="my-4">{renderFilePreview()}</div>
 
-          <Button type="primary" onClick={handleDownload}>
-            Download File
-          </Button>
+          
         </>
       ) : (
         <p className="text-center text-gray-600">File not found or failed to load.</p>
