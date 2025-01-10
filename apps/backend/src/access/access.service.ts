@@ -22,21 +22,14 @@ export class AccessService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {
-    this.cloudFrontKeyPairId = this.configService.get<string>(
-      'CLOUDFRONT_KEYPAIR_ID',
-    );
-    this.cloudFrontPrivateKey = this.configService.get<string>(
-      'CLOUDFRONT_PRIVATE_KEY',
-    );
+    this.cloudFrontKeyPairId = this.configService.get<string>('CLOUDFRONT_KEYPAIR_ID');
+    this.cloudFrontPrivateKey = this.configService.get<string>('CLOUDFRONT_PRIVATE_KEY');
     this.cloudFrontDomain = this.configService.get<string>('CLOUDFRONT_DOMAIN');
+    console.log('AccessService initialized with CloudFront configurations.');
   }
 
-  // 1. Create a shareable link
-  async createShareLink(
-    fileId: string,
-    createShareLinkDto: CreateShareLinkDto,
-    userId: string,
-  ): Promise<any> {
+  async createShareLink(fileId: string, createShareLinkDto: CreateShareLinkDto, userId: string): Promise<any> {
+    console.log('Creating share link for file:', fileId, 'by user:', userId);
     try {
       const { permissions, visibility, expiryDate } = createShareLinkDto;
 
@@ -44,10 +37,13 @@ export class AccessService {
         where: { id: fileId, ownerId: userId },
       });
 
-      if (!file)
+      if (!file) {
+        console.error('File not found:', fileId);
         throw new NotFoundException(ACCESS_MESSAGES.SHARE_LINK_NOT_FOUND);
+      }
 
       const linkToken = crypto.randomBytes(16).toString('hex');
+      console.log('Generated link token:', linkToken);
 
       const shareLink = await this.prisma.link.create({
         data: {
@@ -59,112 +55,116 @@ export class AccessService {
         },
       });
 
+      console.log('Share link created:', shareLink);
+
       return {
         linkToken: shareLink.linkToken,
         url: `${this.configService.get<string>('APP_BASE_URL')}/share/${shareLink.linkToken}`,
         expiryDate,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        ACCESS_MESSAGES.SHARE_LINK_CREATION_FAILED,
-        error,
-      );
+      console.error('Error creating share link:', error);
+      throw new InternalServerErrorException(ACCESS_MESSAGES.SHARE_LINK_CREATION_FAILED, error);
     }
   }
 
-  // 2. Generate short-lived CloudFront signed URL
   async generateDownloadUrl(linkToken: string): Promise<string> {
+    console.log('Generating download URL for link token:', linkToken);
     try {
       const link = await this.prisma.link.findUnique({
         where: { linkToken },
         include: { file: true },
       });
 
-      if (!link)
+      if (!link) {
+        console.error('Invalid link token:', linkToken);
         throw new NotFoundException(ACCESS_MESSAGES.LINK_TOKEN_INVALID);
+      }
 
       if (link.expiryDate && new Date() > link.expiryDate) {
+        console.error('Share link expired:', linkToken);
         throw new BadRequestException(ACCESS_MESSAGES.SHARE_LINK_EXPIRED);
       }
 
       const s3Key = link.file.s3Key;
+      console.log('File S3 key:', s3Key);
 
       const signedUrl = getSignedUrl({
         url: `${this.cloudFrontDomain}/${s3Key}`,
         keyPairId: this.cloudFrontKeyPairId,
         privateKey: this.cloudFrontPrivateKey,
-        dateLessThan: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 1 day expiry
+        dateLessThan: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
 
+      console.log('Generated signed URL:', signedUrl);
       return signedUrl;
     } catch (error) {
-      throw new InternalServerErrorException(
-        ACCESS_MESSAGES.DOWNLOAD_URL_FAILED,
-        error,
-      );
+      console.error('Error generating download URL:', error);
+      throw new InternalServerErrorException(ACCESS_MESSAGES.DOWNLOAD_URL_FAILED, error);
     }
   }
-  // 3. Revoke a shareable link
+
   async revokeShareLink(linkToken: string): Promise<void> {
+    console.log('Revoking share link for token:', linkToken);
     try {
       const link = await this.prisma.link.findUnique({ where: { linkToken } });
 
-      if (!link)
+      if (!link) {
+        console.error('Share link not found:', linkToken);
         throw new NotFoundException(ACCESS_MESSAGES.SHARE_LINK_NOT_FOUND);
+      }
 
       await this.prisma.link.delete({ where: { id: link.id } });
+      console.log('Share link revoked:', linkToken);
     } catch (error) {
-      throw new InternalServerErrorException(
-        ACCESS_MESSAGES.SHARE_LINK_REVOKE_FAILED,
-        error,
-      );
+      console.error('Error revoking share link:', error);
+      throw new InternalServerErrorException(ACCESS_MESSAGES.SHARE_LINK_REVOKE_FAILED, error);
     }
   }
 
-  // 4. Add access to a restricted link
-  async addAccess(
-    linkToken: string,
-    addAccessDto: AddAccessDto,
-  ): Promise<void> {
-    const { email, permissionLevel, expiryDate } = addAccessDto;
-
+  async addAccess(linkToken: string, addAccessDto: AddAccessDto): Promise<void> {
+    console.log('Adding access for link token:', linkToken, 'with details:', addAccessDto);
     try {
       const link = await this.prisma.link.findUnique({ where: { linkToken } });
 
-      if (!link)
+      if (!link) {
+        console.error('Invalid link token:', linkToken);
         throw new NotFoundException(ACCESS_MESSAGES.LINK_TOKEN_INVALID);
+      }
 
       await this.prisma.access.create({
         data: {
           linkId: link.id,
-          email,
-          permissionLevel,
-          expiryDate,
+          email: addAccessDto.email,
+          permissionLevel: addAccessDto.permissionLevel,
+          expiryDate: addAccessDto.expiryDate,
         },
       });
+
+      console.log('Access added for email:', addAccessDto.email);
     } catch (error) {
+      console.error('Error adding access:', error);
       if (error.code === 'P2002') {
-        // Prisma unique constraint error
         throw new BadRequestException(ACCESS_MESSAGES.ACCESS_ALREADY_EXISTS);
       }
-      throw new InternalServerErrorException(
-        ACCESS_MESSAGES.ADD_ACCESS_FAILED,
-        error,
-      );
+      throw new InternalServerErrorException(ACCESS_MESSAGES.ADD_ACCESS_FAILED, error);
     }
   }
 
-  // 5. List all users with access to a link
   async listAccess(linkToken: string): Promise<any[]> {
+    console.log('Listing access for link token:', linkToken);
     try {
       const link = await this.prisma.link.findUnique({
         where: { linkToken },
         include: { accesses: true },
       });
 
-      if (!link)
+      if (!link) {
+        console.error('Invalid link token:', linkToken);
         throw new NotFoundException(ACCESS_MESSAGES.LINK_TOKEN_INVALID);
+      }
 
+      console.log('Accesses found:', link.accesses);
       return link.accesses.map((access) => ({
         id: access.id,
         email: access.email,
@@ -172,36 +172,37 @@ export class AccessService {
         expiryDate: access.expiryDate,
       }));
     } catch (error) {
-      throw new InternalServerErrorException(
-        ACCESS_MESSAGES.LIST_ACCESS_FAILED,
-        error,
-      );
+      console.error('Error listing access:', error);
+      throw new InternalServerErrorException(ACCESS_MESSAGES.LIST_ACCESS_FAILED, error);
     }
   }
 
-  // 6. Remove access for a specific email
   async removeAccess(linkToken: string, accessId: string): Promise<void> {
+    console.log('Removing access with ID:', accessId, 'for link token:', linkToken);
     try {
       const link = await this.prisma.link.findUnique({
         where: { linkToken },
       });
 
-      if (!link)
+      if (!link) {
+        console.error('Invalid link token:', linkToken);
         throw new NotFoundException(ACCESS_MESSAGES.LINK_TOKEN_INVALID);
+      }
 
       const access = await this.prisma.access.findUnique({
         where: { id: accessId },
       });
 
-      if (!access)
+      if (!access) {
+        console.error('Access not found for ID:', accessId);
         throw new NotFoundException(ACCESS_MESSAGES.ACCESS_NOT_FOUND);
+      }
 
       await this.prisma.access.delete({ where: { id: accessId } });
+      console.log('Access removed for ID:', accessId);
     } catch (error) {
-      throw new InternalServerErrorException(
-        ACCESS_MESSAGES.REMOVE_ACCESS_FAILED,
-        error,
-      );
+      console.error('Error removing access:', error);
+      throw new InternalServerErrorException(ACCESS_MESSAGES.REMOVE_ACCESS_FAILED, error);
     }
   }
 }

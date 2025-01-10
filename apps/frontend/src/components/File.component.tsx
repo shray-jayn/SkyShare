@@ -5,12 +5,15 @@ import { Button, message, Spin } from "antd";
 import type { FileMetadata } from "../models/file/file.model";
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import PDFViewer from "./Pdf.component";
+import { EditOutlined, ShareAltOutlined, CloudDownloadOutlined } from '@ant-design/icons';
+import ShareModal from "./ShareModal.component";
 
 const FileView: React.FC = () => {
   const { fileId } = useParams<{ fileId: string }>();
   const [file, setFile] = useState<FileMetadata | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [downloadUrl, setDownloadUrl] = useState<string>("");
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Fetch file details
   const fetchFileDetails = async () => {
@@ -142,16 +145,51 @@ const FileView: React.FC = () => {
     <div className="p-4 bg-white shadow-sm rounded-lg">
       {file ? (
         <>
-          <h1 className="text-xl font-semibold mb-3">{file.fileName}</h1>
-          <Button type="primary" onClick={handleDownload}>
-            Download File
-          </Button>
+        {/* Header Section with FileName and Icons */}
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-semibold">{file.fileName}</h1>
+          <div className="flex space-x-4 relative">
+            {/* Edit Icon */}
+            <button className="relative group text-gray-500 hover:text-gray-700 text-2xl">
+              <EditOutlined />
+              <span className="absolute left-1/2 transform -translate-x-1/2 top-full mt-1 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 shadow-lg">
+                Edit
+              </span>
+            </button>
 
-          {/* File Preview */}
-          <div className="my-4">{renderFilePreview()}</div>
+            {/* Share Icon */}
+            <button className="relative group text-gray-500 hover:text-gray-700 text-2xl"
+             onClick={() => setIsShareModalOpen(true)}>
+              <ShareAltOutlined />
+              <span className="absolute left-1/2 transform -translate-x-1/2 top-full mt-1 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 shadow-lg">
+                Share
+              </span>
+            </button>
 
-          
-        </>
+            {/* Download Icon */}
+            <button
+              className="relative group text-gray-500 hover:text-gray-700 text-2xl"
+              onClick={handleDownload}
+            >
+              <CloudDownloadOutlined />
+              <span className="absolute left-1/2 transform -translate-x-1/2 top-full mt-1 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 shadow-lg">
+                Download
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* File Preview */}
+        <div className="my-4">{renderFilePreview()}</div>
+
+        {/* Share Modal */}
+
+        <ShareModal
+          file={file}
+          isVisible={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+        />
+      </>
       ) : (
         <p className="text-center text-gray-600">File not found or failed to load.</p>
       )}
