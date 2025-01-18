@@ -5,8 +5,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**"]
+      "outputs": ["apps/backend/dist/**", "apps/frontend/dist/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]

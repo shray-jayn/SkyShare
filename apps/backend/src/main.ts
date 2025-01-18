@@ -9,16 +9,18 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  
   const corsOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',')
-    : ['http://localhost:5173'];
+    : ['https://sky-share-frontend.vercel.app', 'http://localhost:5173'];
 
   app.enableCors({
     origin: function (origin, callback) {
-      if (corsOrigins.indexOf(origin) !== -1 || !origin) {
+      console.log(`CORS request from origin: ${origin}`);
+      if (!origin || corsOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.error(`Blocked by CORS: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
@@ -36,7 +38,6 @@ async function bootstrap() {
     }),
   );
 
-  // Apply the BigIntInterceptor globally
   app.useGlobalInterceptors(new BigIntInterceptor());
 
   app.setGlobalPrefix('api');
