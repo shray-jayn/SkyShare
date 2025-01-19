@@ -51,9 +51,17 @@ const LoginComponent: React.FC = () => {
 
   return (
     <div className="text-center">
-      <h2 className="text-3xl font-bold mb-4">Hello Again!</h2>
-      <p className="text-gray-500 mb-6 leading-relaxed">
-        Alquam consectetur et tincidunt praesent enim massa pellentesque.
+      <div className="w-full flex justify-center mb-1">
+        <img
+          src="https://img.freepik.com/premium-vector/cloud-logo-design-concept_761413-6571.jpg"
+          alt="SkyShare"
+          className="w-32"
+        />
+      </div>
+
+      <p className="text-2xl font-medium mb-2 text-center">Welcome Back!</p>
+      <p className="text-gray-500 mb-6 text-center">
+        Enter your credentials to login into your account
       </p>
       <Form
         name="login"
@@ -102,12 +110,12 @@ const LoginComponent: React.FC = () => {
           Log in
         </Button>
       </Form>
-      <p className="mt-4 text-sm">
+      {/* <p className="mt-4 text-sm">
         or{" "}
         <a href="#" className="text-blue-600">
           Sign in with Google
         </a>
-      </p>
+      </p> */}
       <p className="mt-4 text-sm">
         Don’t have an account yet?{" "}
         <a href="/signup" className="text-blue-600">

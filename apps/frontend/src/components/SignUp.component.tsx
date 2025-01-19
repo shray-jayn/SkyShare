@@ -44,22 +44,30 @@ const SignUpComponent: React.FC = () => {
   return (
     <div>
       {/* Heading */}
-      <h2 className="text-3xl font-bold mb-2 text-center">Get Started Now</h2>
+      <div className="w-full flex justify-center mb-1">
+        <img
+          src="https://img.freepik.com/premium-vector/cloud-logo-design-concept_761413-6571.jpg"
+          alt="SkyShare"
+          className="w-32"
+        />
+      </div>
+
+      <p className="text-3xl font-medium mb-2 text-center">Get Started Now</p>
       <p className="text-gray-500 mb-6 text-center">
         Enter your credentials to create your account
       </p>
 
       {/* Social Login */}
-      <div className="flex justify-center gap-4 mb-4">
+      {/* <div className="flex justify-center gap-4 mb-4">
         <Button icon={<GoogleOutlined />} className="w-1/2 border-gray-300">
           Sign-up with Google
         </Button>
         <Button icon={<AppleOutlined />} className="w-1/2 border-gray-300">
           Sign-up with Apple
         </Button>
-      </div>
+      </div> */}
 
-      <div className="text-center text-gray-400 mb-6">or</div>
+      {/* <div className="text-center text-gray-400 mb-6">or</div> */}
 
       {/* Form */}
       <Form

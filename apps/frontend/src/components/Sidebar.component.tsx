@@ -55,8 +55,16 @@ const Sidebar: React.FC = () => {
   return (
     <div className="h-full flex flex-col bg-white border-r shadow-sm">
       {/* Search Input */}
-      <div className="p-4">
-        <Search placeholder="Search" allowClear />
+      <div className="">
+      
+        <div className="flex justify-center items-center">
+          <img
+            src="https://img.freepik.com/premium-vector/cloud-logo-design-concept_761413-6571.jpg"
+            alt="SkyShare"
+            className="w-24"
+          />
+        </div>
+        
       </div>
 
       {/* Menu */}
