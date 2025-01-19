@@ -1,11 +1,31 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalDependencies": ["**/.env.*local"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["apps/backend/dist/**", "apps/frontend/dist/**"]
+    },
+    "backend#build": {
+      "dependsOn": ["^build"],
+      "env": [
+        "CORS_ORIGIN",
+        "DATABASE_URL",
+        "JWT_SECRET",
+        "JWT_EXPIRES_IN_SECONDS",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "AWS_REGION",
+        "AWS_S3_BUCKET",
+        "CLOUDFRONT_DOMAIN",
+        "CLOUDFRONT_KEYPAIR_ID",
+        "CLOUDFRONT_PRIVATE_KEY"
+      ],
+      "outputs": ["apps/backend/dist/**"]
+    },
+    "frontend#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["apps/frontend/dist/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -20,5 +40,10 @@
     "db:push": {
       "cache": false
     }
-  }
+  },
+  "globalDependencies": [
+    "turbo.json",
+    "tsconfig.json",
+    "**/.env.*local"
+  ]
 }
