@@ -53,9 +53,9 @@ const Sidebar: React.FC = () => {
     : 0;
 
   return (
-    <div className="h-full flex flex-col bg-white border-r shadow-sm">
+    <div className="h-full flex flex-col bg-white border-r shadow-sm pr-4">
       {/* Search Input */}
-      <div className="">
+     
       
         <div className="flex justify-center items-center">
           <img
@@ -64,8 +64,7 @@ const Sidebar: React.FC = () => {
             className="w-24"
           />
         </div>
-        
-      </div>
+      
 
       {/* Menu */}
       <Menu
