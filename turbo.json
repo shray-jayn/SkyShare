@@ -1,7 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "ui": "tui",
-  "tasks": {
+  "pipeline": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["apps/backend/dist/**", "apps/frontend/dist/**"]
@@ -44,6 +43,6 @@
   "globalDependencies": [
     "turbo.json",
     "tsconfig.json",
-    "**/.env.*local"
+    "apps/backend/.env"
   ]
 }
