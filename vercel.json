@@ -16,14 +16,14 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "apps/backend/dist/main.js"
+      "source": "/api/(.*)",
+      "destination": "/apps/backend/dist/main.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "apps/frontend/dist/$1"
+      "source": "/(.*)",
+      "destination": "/apps/frontend/dist/$1"
     }
   ],
   "cleanUrls": true
