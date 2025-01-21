@@ -13,6 +13,7 @@ import Videos from "../pages/Videos.page";
 import Audios from "../pages/Audios.page";
 import NotFound from "../pages/NotFound.page";
 import FileDetail from "../pages/FileDetail.page";
+import Favorites from "../pages/Favourites.page";
 
 // Component to protect private routes
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
@@ -48,6 +49,14 @@ const AppRouter: React.FC = () => {
           element={
             <RequireAuth>
               <Shared />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/favourites"
+          element={
+            <RequireAuth>
+              <Favorites />
             </RequireAuth>
           }
         />

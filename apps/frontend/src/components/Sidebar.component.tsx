@@ -1,77 +1,73 @@
 import React, { useState } from "react";
 import {
-  AppstoreOutlined,
+  HeartOutlined,
   MailOutlined,
-  SettingOutlined,
+  TeamOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Menu, Input, Progress, Avatar } from "antd";
+import { Menu, Progress, Avatar } from "antd";
 import type { MenuProps } from "antd";
 import { useRecoilValue } from "recoil";
+import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation and useNavigate
 import { authState } from "../recoil/atoms/auth.atom";
-
-const { Search } = Input;
 
 type MenuItem = Required<MenuProps>["items"][number];
 
 const items: MenuItem[] = [
   {
-    key: "1",
+    key: "/",
     icon: <MailOutlined />,
     label: "Home",
   },
   {
-    key: "2",
-    icon: <AppstoreOutlined />,
-    label: "Dashboard",
-    children: [
-      { key: "21", label: "Overview" },
-      { key: "22", label: "Notifications" },
-      { key: "23", label: "Recently Deleted" },
-    ],
+    key: "/favourites",
+    icon: <HeartOutlined />,
+    label: "Favourites",
   },
   {
-    key: "3",
-    icon: <SettingOutlined />,
-    label: "Settings",
+    key: "/shared",
+    icon: <TeamOutlined />,
+    label: "Shared",
   },
 ];
 
 const Sidebar: React.FC = () => {
-  const [stateOpenKeys, setStateOpenKeys] = useState(["2"]);
-  const auth = useRecoilValue(authState); // Access auth state
+  const location = useLocation(); 
+  const navigate = useNavigate(); 
+  const [stateOpenKeys, setStateOpenKeys] = useState([location.pathname]); // Set based on current path
+  const auth = useRecoilValue(authState); 
 
   const onOpenChange: MenuProps["onOpenChange"] = (openKeys) => {
     setStateOpenKeys(openKeys);
   };
 
-  console.log(auth.user);
+  const handleMenuClick: MenuProps["onClick"] = (e) => {
+    navigate(e.key); 
+  };
 
   // Calculate used storage percentage
   const usedSpacePercentage = auth.user
-    ? Number(auth.user.usedStorage) / Number(auth.user.storageQuota) * 100
+    ? (Number(auth.user.usedStorage) / Number(auth.user.storageQuota)) * 100
     : 0;
 
   return (
     <div className="h-full flex flex-col bg-white border-r shadow-sm pr-4">
-      {/* Search Input */}
-     
-      
-        <div className="flex justify-center items-center">
-          <img
-            src="https://img.freepik.com/premium-vector/cloud-logo-design-concept_761413-6571.jpg"
-            alt="SkyShare"
-            className="w-24"
-          />
-        </div>
-      
+      {/* Logo Section */}
+      <div className="flex justify-center items-center">
+        <img
+          src="https://img.freepik.com/premium-vector/cloud-logo-design-concept_761413-6571.jpg"
+          alt="SkyShare"
+          className="w-24"
+        />
+      </div>
 
       {/* Menu */}
       <Menu
         mode="inline"
-        defaultSelectedKeys={["21"]}
+        selectedKeys={[location.pathname]} 
         openKeys={stateOpenKeys}
         onOpenChange={onOpenChange}
+        onClick={handleMenuClick} 
         style={{ flex: 1 }}
         items={items}
       />
