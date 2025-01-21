@@ -69,6 +69,57 @@ export class FileController {
     return { count };
   }
 
+  @Get('favorites')
+  @HttpCode(HttpStatus.OK)
+  async getAllFavoriteFiles(
+    @Req() req: any,
+  ): Promise<{ message: string; data: GetAllFilesResponseDto[] }> {
+    const userId = req.user.id;
+    const favoriteFiles = await this.fileService.getAllFavouriteFiles(userId);
+    return { message: FILE_MESSAGES.FAVORITES_RETRIEVED_SUCCESS, data: favoriteFiles };
+  }
+
+  @Get('shared')
+  @HttpCode(HttpStatus.OK)
+  async getAllFilesSharedWithUser(
+    @Req() req: any,
+  ): Promise<{ message: string; data: GetAllFilesResponseDto[] }> {
+    const userId = req.user.id; 
+  
+    const userEmail = await this.fileService.getUserEmailById(userId);
+    if (!userEmail?.email) {
+      throw new NotFoundException('User email not found.');
+    }
+
+    const sharedFiles = await this.fileService.getAllFilesSharedWithUser(userEmail.email);
+    return { message: FILE_MESSAGES.SHARED_FILES_RETRIEVED_SUCCESS, data: sharedFiles };
+  }
+
+  @Get('count/favorites')
+  @HttpCode(HttpStatus.OK)
+  async getFavoriteFileCount(
+    @Req() req: any,
+  ): Promise<{ count: number }> {
+    const userId = req.user.id;
+    const count = await this.fileService.getFavoriteFileCount(userId);
+    return { count };
+  }
+
+  @Get('count/shared')
+  @HttpCode(HttpStatus.OK)
+  async getSharedFileCount(
+    @Req() req: any,
+  ): Promise<{ count: number }> {
+    const userId = req.user.id;
+    const user = await this.fileService.getUserEmailById(userId);
+    if (!user?.email) {
+      throw new NotFoundException('User email not found.');
+    }
+
+    const count = await this.fileService.getSharedFileCount(user.email);
+    return { count };
+  }
+
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)

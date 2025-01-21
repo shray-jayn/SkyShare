@@ -23,7 +23,7 @@ import { GetAllFilesResponseDto } from './dtos/get-all-files-response.dto';
 import { FileMetadataResponseDto } from './dtos/file-metadata-response.dto';
 import { SearchFilesResponseDto } from './dtos/search-files-response.dto';
 import { DownloadUrlResponseDto } from './dtos/download-url-response.dto';
-import { FileCategory, FileStatus, Prisma } from '@prisma/client';
+import { FileCategory, FileStatus, Prisma, User } from '@prisma/client';
 import { GetFilesByCategoryRequestDto } from './dtos/get-files-by-category-request.dto';
 import { GetFilesCountByCategoryRequestDto } from './dtos/get-file-count-categort-request.dto';
 
@@ -192,6 +192,99 @@ export class FileService {
     }
   }
 
+  async getAllFavouriteFiles(userId: string): Promise<GetAllFilesResponseDto[]> {
+    try {
+      const favoriteFiles = await this.prisma.file.findMany({
+        where: {
+          ownerId: userId,
+          isFavorite: true,
+        },
+        include: {
+          owner: {
+            select: {
+              name: true,
+              profilePicture: true,
+            },
+          },
+        },
+      });
+  
+      return favoriteFiles.map((file) => ({
+        id: file.id,
+        fileName: file.fileName,
+        fileSize: file.fileSize,
+        type: file.type,
+        category: file.category,
+        isFavorite: file.isFavorite,
+        status: file.status,
+        createdAt: file.createdAt.toISOString(),
+        updatedAt: file.updatedAt.toISOString(),
+        owner: {
+          name: file.owner?.name || null,
+          profilePicture: file.owner?.profilePicture || null,
+        },
+      }));
+    } catch (error) {
+      console.error("Error retrieving favorite files:", error);
+      throw new InternalServerErrorException("Failed to retrieve favorite files.");
+    }
+  }
+
+
+  async getAllFilesSharedWithUser(userEmail: string): Promise<GetAllFilesResponseDto[]> {
+    try {
+      const sharedFiles = await this.prisma.file.findMany({
+        where: {
+          links: {
+            some: {
+              accesses: {
+                some: {
+                  email: userEmail,
+                },
+              },
+            },
+          },
+        },
+        include: {
+          owner: {
+            select: {
+              name: true,
+              profilePicture: true,
+            },
+          },
+        },
+      });
+  
+      return sharedFiles.map((file) => ({
+        id: file.id,
+        fileName: file.fileName,
+        fileSize: file.fileSize,
+        type: file.type,
+        category: file.category,
+        isFavorite: file.isFavorite,
+        status: file.status,
+        createdAt: file.createdAt.toISOString(),
+        updatedAt: file.updatedAt.toISOString(),
+        owner: {
+          name: file.owner?.name || null,
+          profilePicture: file.owner?.profilePicture || null,
+        },
+      }));
+    } catch (error) {
+      console.error("Error retrieving files shared with user:", error);
+      throw new InternalServerErrorException("Failed to retrieve shared files.");
+    }
+  }
+
+  async getUserEmailById(userId: string): Promise<{ email: string } | null> {
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+  }
+  
+  
+
   async getFileMetadata(fileId: string): Promise<FileMetadataResponseDto> {
     try {
       const file = await this.prisma.file.findUnique({ where: { id: fileId } });
@@ -220,6 +313,42 @@ export class FileService {
       throw new InternalServerErrorException('Failed to fetch total file count');
     } 
   }
+
+  async getFavoriteFileCount(userId: string): Promise<number> {
+    try {
+      const count = await this.prisma.file.count({
+        where: {
+          ownerId: userId,
+          isFavorite: true,
+        },
+      });
+      return count;
+    } catch (error) {
+      console.error(`Failed to fetch favorite file count for user: ${userId}`, error);
+      throw new InternalServerErrorException('Failed to fetch favorite file count');
+    }
+  }
+
+  
+  async getSharedFileCount(email: string): Promise<number> {
+    try {
+      const count = await this.prisma.link.count({
+        where: {
+          accesses: {
+            some: {
+              email: email,
+            },
+          },
+        },
+      });
+      return count;
+    } catch (error) {
+      console.error(`Failed to fetch shared file count for email: ${email}`, error);
+      throw new InternalServerErrorException('Failed to fetch shared file count');
+    }
+  }
+  
+
 
   async updateFileStatus(fileId: string, status: FileStatus): Promise<{ message: string }> {
     try {
