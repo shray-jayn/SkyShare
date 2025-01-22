@@ -5,6 +5,7 @@ import { FileModule } from './file/file.module';
 import { AuthModule } from './auth/auth.module';
 import { AccessModule } from './access/access.module';
 import { SearchModule } from './search/search.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SearchModule } from './search/search.module';
     FileModule,
     AccessModule,
     SearchModule,
+    MailModule,
   ],
 })
 export class AppModule {}
