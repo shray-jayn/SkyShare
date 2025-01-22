@@ -147,16 +147,16 @@ export class FileController {
     return { message: FILE_MESSAGES.FILE_UPDATE_METADATA_SUCCESS, data: updatedFile };
   }
 
-  @Get('search')
-  @HttpCode(HttpStatus.OK)
-  async searchFiles(
-    @Query() searchFilesDto: SearchFilesDto,
-    @Req() req: any,
-  ): Promise<{ message: string; data: SearchFilesResponseDto[] }> {
-    const userId = req.user.id;
-    const results = await this.fileService.searchFiles(searchFilesDto, userId);
-    return { message: FILE_MESSAGES.FILE_SEARCH_SUCCESS, data: results };
-  }
+  // @Get('search')
+  // @HttpCode(HttpStatus.OK)
+  // async searchFiles(
+  //   @Query() searchFilesDto: SearchFilesDto,
+  //   @Req() req: any,
+  // ): Promise<{ message: string; data: SearchFilesResponseDto[] }> {
+  //   const userId = req.user.id;
+  //   const results = await this.fileService.searchFiles(searchFilesDto, userId);
+  //   return { message: FILE_MESSAGES.FILE_SEARCH_SUCCESS, data: results };
+  // }
 
   @Get('download-url/:id')
   @HttpCode(HttpStatus.OK)
