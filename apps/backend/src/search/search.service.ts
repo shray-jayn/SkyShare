@@ -8,9 +8,7 @@ export class SearchService {
   constructor(private readonly prisma: PrismaService) {}
 
   async searchFiles(searchRequestDto: SearchRequestDto) {
-    const { query, type, date, limit = 10, offset = 0 } = searchRequestDto;
-
-    // Initialize filters
+    const { query, limit = 10, offset = 0 } = searchRequestDto;
     const filters: any = {};
 
     console.log('Search request received:', searchRequestDto);
@@ -35,30 +33,7 @@ export class SearchService {
         };
         console.log('Applied fileName filter:', filters.fileName);
       }
-
-      // Add type filter if provided
-      if (type && type.length > 0) {
-        filters.type = { in: type.map((t) => t.toUpperCase()) };
-        console.log('Applied type filter:', filters.type);
-      }
-
-      // Add date filter if provided
-      if (date) {
-        const { from, to } = date;
-        if (from && to && new Date(from) > new Date(to)) {
-          console.error('Invalid date range:', date);
-          throw new HttpException(
-            SEARCH_MESSAGES.INVALID_DATE_RANGE,
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        filters.createdAt = {
-          ...(from ? { gte: new Date(from) } : {}),
-          ...(to ? { lte: new Date(to) } : {}),
-        };
-        console.log('Applied date filter:', filters.createdAt);
-      }
-
+      
       // Validate limit and offset
       const sanitizedLimit = Math.min(Math.max(limit, 1), 100); // Limit between 1 and 100
       const sanitizedOffset = Math.max(offset, 0); // Ensure offset is non-negative

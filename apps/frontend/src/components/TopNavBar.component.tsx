@@ -5,21 +5,20 @@ import { useSetRecoilState } from "recoil";
 import { useNavigate } from "react-router-dom";
 import { authState } from "../recoil/atoms/auth.atom";
 import UploadComponent from "../components/Upload.component";
+import { searchService } from "../services/search.service";
 
 const { Search } = Input;
 
 const TopNavBar: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const setAuth = useSetRecoilState(authState); 
+  const [loading, setLoading] = useState(false); // Loader state
+  const setAuth = useSetRecoilState(authState);
   const navigate = useNavigate();
 
-  
   const showModal = () => setIsModalVisible(true);
   const handleCancel = () => setIsModalVisible(false);
 
- 
   const handleLogout = () => {
-    
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
 
@@ -31,6 +30,24 @@ const TopNavBar: React.FC = () => {
 
     message.success("You have been logged out.");
     navigate("/login");
+  };
+
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      message.warning("Please enter a valid search query.");
+      return;
+    }
+
+    setLoading(true); // Show loader in the search bar
+    try {
+      const results = await searchService.searchFiles({ query, limit: 10, offset: 0 });
+      navigate("/search", { state: { query, results } });
+    } catch (error: any) {
+      message.error("Failed to perform search. Please try again.");
+      console.error("Search error:", error.message);
+    } finally {
+      setLoading(false); // Hide loader
+    }
   };
 
   return (
@@ -46,7 +63,8 @@ const TopNavBar: React.FC = () => {
             enterButton="Search"
             size="large"
             className="w-full md:w-3/4 lg:w-1/2"
-            loading
+            loading={loading} // Loader only in the search bar
+            onSearch={handleSearch} // Call search handler
           />
         </div>
 

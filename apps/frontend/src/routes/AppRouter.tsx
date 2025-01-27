@@ -14,6 +14,7 @@ import Audios from "../pages/Audios.page";
 import NotFound from "../pages/NotFound.page";
 import FileDetail from "../pages/FileDetail.page";
 import Favorites from "../pages/Favourites.page";
+import Search from "../pages/Search.page"; 
 
 // Component to protect private routes
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
@@ -92,12 +93,19 @@ const AppRouter: React.FC = () => {
             </RequireAuth>
           }
         />
-
         <Route
           path="/files/:fileId"
           element={
             <RequireAuth>
               <FileDetail />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <RequireAuth>
+              <Search/>
             </RequireAuth>
           }
         />
