@@ -8,7 +8,7 @@ import {
 import { Menu, Progress, Avatar } from "antd";
 import type { MenuProps } from "antd";
 import { useRecoilValue } from "recoil";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation and useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import { authState } from "../recoil/atoms/auth.atom";
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -51,7 +51,7 @@ const Sidebar: React.FC = () => {
     : 0;
 
   return (
-    <div className="h-full flex flex-col bg-white border-r shadow-sm pr-4">
+    <div className="h-full flex flex-col bg-white border-r shadow-sm pr-4 ">
       {/* Logo Section */}
       <div className="flex justify-center items-center">
         <img

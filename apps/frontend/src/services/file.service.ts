@@ -6,8 +6,6 @@ import {
   CreateUploadUrlRequest,
   CreateUploadUrlResponse,
   UpdateMetadataRequest,
-  SearchFilesRequest,
-  SearchFilesResponse,
   DownloadUrlResponse,
   CountRequest,
 } from "../models/file/file.model";
@@ -78,17 +76,6 @@ export const fileService = {
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Unable to update file metadata.";
       console.error("Failed to update file metadata:", errorMessage);
-      throw new Error(errorMessage);
-    }
-  },
-
-  async searchFiles(payload: SearchFilesRequest): Promise<SearchFilesResponse[]> {
-    try {
-      const response = await apiClient.get("/files/search", { params: payload });
-      return response.data.data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Unable to search files.";
-      console.error("Failed to search files:", errorMessage);
       throw new Error(errorMessage);
     }
   },

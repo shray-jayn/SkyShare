@@ -49,21 +49,6 @@ export interface UpdateMetadataRequest {
   fileName: string;
 }
 
-export interface SearchFilesRequest extends PaginationRequest {
-  query?: string;
-  size?: number;
-  date?: string;
-}
-
-export interface SearchFilesResponse {
-  id: string;
-  fileName: string;
-  fileSize: bigint;
-  type: string;
-  category: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface DownloadUrlResponse {
   downloadUrl: string;
