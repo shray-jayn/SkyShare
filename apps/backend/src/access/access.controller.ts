@@ -15,6 +15,8 @@ import { CreateShareLinkDto } from './dtos/create-share-link.dto';
 import { AddAccessDto } from './dtos/add-access.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ACCESS_MESSAGES } from './constants/access.constants';
+import { GetShareLinkTokenRequestDto } from './dtos/get-share-link-token-request.dto';
+import { GetShareLinkTokenResponseDto } from './dtos/get-share-link-token-response.dto';
 
 @Controller('share')
 @UseGuards(AuthGuard('jwt'))
@@ -77,5 +79,16 @@ export class AccessController {
     @Param('id') accessId: string,
   ) {
     await this.accessService.removeAccess(linkToken, accessId);
+  }
+
+  @Get('/token/:fileId')
+  @HttpCode(HttpStatus.OK)
+  async getShareLinkToken(
+    @Param() params: GetShareLinkTokenRequestDto, 
+    @Req() req: any
+  ): Promise<{ message: string; data: GetShareLinkTokenResponseDto }> {
+    const userId = req.user.id;
+    const data = await this.accessService.getShareLinkToken(params.fileId, userId);
+    return { message: "Share link token retrieved successfully.", data };
   }
 }

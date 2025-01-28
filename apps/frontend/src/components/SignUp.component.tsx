@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Form, Input, Checkbox, message } from "antd";
-import { GoogleOutlined, AppleOutlined } from "@ant-design/icons";
+// import { GoogleOutlined, AppleOutlined } from "@ant-design/icons";
 import { authService } from "../services/auth.service"; 
 import { useNavigate } from "react-router-dom"; 
 import { useSetRecoilState } from "recoil";

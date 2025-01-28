@@ -75,7 +75,7 @@ const FileView: React.FC = () => {
           src={downloadUrl}
           controls
           width="100%"
-          height="500px"
+          height="100%"
           className="rounded-lg shadow-md"
         >
           Your browser does not support the video tag.

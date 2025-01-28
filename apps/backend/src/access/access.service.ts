@@ -11,6 +11,7 @@ import { CreateShareLinkDto } from './dtos/create-share-link.dto';
 import { AddAccessDto } from './dtos/add-access.dto';
 import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
 import * as crypto from 'crypto';
+import { GetShareLinkTokenResponseDto } from './dtos/get-share-link-token-response.dto';
 
 @Injectable()
 export class AccessService {
@@ -205,4 +206,25 @@ export class AccessService {
       throw new InternalServerErrorException(ACCESS_MESSAGES.REMOVE_ACCESS_FAILED, error);
     }
   }
+
+  async getShareLinkToken(fileId: string, userId: string): Promise<GetShareLinkTokenResponseDto> {
+  console.log('Fetching share link token for file:', fileId, 'by user:', userId);
+  try {
+    const link = await this.prisma.link.findFirst({
+      where: { fileId, file: { ownerId: userId } },
+      select: { linkToken: true },
+    });
+
+    if (!link) {
+      console.error('No share link found for file:', fileId);
+      throw new NotFoundException('No share link available for this file.');
+    }
+
+    console.log('Found share link token:', link.linkToken);
+    return { linkToken: link.linkToken };
+  } catch (error) {
+    console.error('Error fetching share link token:', error);
+    throw new InternalServerErrorException('Failed to retrieve share link token.');
+  }
+}
 }
