@@ -1,11 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["apps/backend/dist/**", "apps/frontend/dist/**"]
     },
-    "backend#build": {
+    "backend:build": {
       "dependsOn": ["^build"],
       "env": [
         "CORS_ORIGIN",
@@ -22,7 +22,7 @@
       ],
       "outputs": ["apps/backend/dist/**"]
     },
-    "frontend#build": {
+    "frontend:build": {
       "dependsOn": ["^build"],
       "outputs": ["apps/frontend/dist/**"]
     },

@@ -12,7 +12,7 @@ async function bootstrap() {
   
   const corsOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',')
-    : ['https://skyshare.shray.tech','https://sky-share-frontend.vercel.app', 'http://localhost:5173'];
+    : ['https://skyshare.shray.tech','https://sky-share-frontend.vercel.app', 'http://localhost:5173', 'https://d3owmfg6w5deom.cloudfront.net/'];
 
   app.enableCors({
     origin: function (origin, callback) {
