@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Table, Avatar, Tooltip, Button, message } from "antd";
 import { StarOutlined, StarFilled } from "@ant-design/icons";
 import { fileService } from "../services/file.service";
@@ -26,26 +26,27 @@ const FavouriteFilesTable: React.FC<FavouriteFilesTableProps> = ({ category }) =
 
   const navigate = useNavigate();
 
-  
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     try {
       setLoading(true);
-  
+
       const [files, countResponse] = await Promise.all([
         favouritesService.getAllFavouriteFiles(pagination),
-        favouritesService.getFavoriteFileCount()
+        favouritesService.getFavoriteFileCount(),
       ]);
-  
-      setFileData(files);
-      setFileCount(countResponse); 
 
-    } catch (error: any) {
-      message.error(error.message || "Failed to fetch files.");
+      setFileData(files);
+      setFileCount(countResponse);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        message.error(err.message || "Failed to fetch files.");
+      } else {
+        message.error("An unknown error occurred.");
+      }
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, [pagination]);
 
   const toggleFavorite = async (key: string, isFavorite: boolean) => {
     try {
@@ -55,14 +56,14 @@ const FavouriteFilesTable: React.FC<FavouriteFilesTableProps> = ({ category }) =
           file.id === key ? { ...file, isFavorite: !file.isFavorite } : file
         )
       );
-    } catch (error: any) {
+    } catch {
       message.error("Failed to update favorite status.");
     }
   };
 
   useEffect(() => {
     fetchFiles();
-  }, [pagination, category]);
+  }, [fetchFiles, pagination, category]);
 
   const handleTableChange = (paginationConfig: TablePaginationConfig) => {
     const currentPage = paginationConfig.current || 1;
@@ -80,8 +81,11 @@ const FavouriteFilesTable: React.FC<FavouriteFilesTableProps> = ({ category }) =
       title: "Asset Name",
       dataIndex: "fileName",
       key: "fileName",
-      render: (text: string, record: FileMetadata) => 
-      <span className="font-medium text-gray-700" onClick={() => navigate(`/files/${record.id}`)}>{text}</span>,
+      render: (text: string, record: FileMetadata) => (
+        <span className="font-medium text-gray-700" onClick={() => navigate(`/files/${record.id}`)}>
+          {text}
+        </span>
+      ),
     },
     {
       title: "Favorite",
@@ -131,7 +135,7 @@ const FavouriteFilesTable: React.FC<FavouriteFilesTableProps> = ({ category }) =
         pagination={{
           current: pagination.offset / pagination.limit + 1,
           pageSize: pagination.limit,
-          total: fileCount
+          total: fileCount,
         }}
         rowKey={(record) => record.id}
         onChange={handleTableChange}
