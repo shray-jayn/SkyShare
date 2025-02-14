@@ -1,50 +1,142 @@
-# React + TypeScript + Vite
+# 📂 **SkyShare Frontend**  
+A **modern cloud-sharing platform** built with **React**, powered by a **NestJS backend**, and managed in a **TurboRepo monorepo**. SkyShare enables users to securely upload, manage, and share files seamlessly.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![SkyShare Banner](screenshots/banner.png)
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 **Features**
+✅ Secure file sharing with authentication  
+✅ Intuitive **drag-and-drop** file uploads  
+✅ **PDF & document preview** with `react-pdf-viewer`  
+✅ Real-time file updates with **Recoil state management**  
+✅ Beautiful UI with **Ant Design & TailwindCSS**  
+✅ Optimized with **TurboRepo** for efficient development  
+✅ Supports **audio, video, image, and document** previews  
+✅ **Favorite functionality** to save important files  
+✅ **File sharing via email** to collaborate with other users  
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## 📦 **Tech Stack**
+- **Frontend**: React, Vite, TailwindCSS, Recoil, React Router, Ant Design  
+- **Backend**: NestJS (handled separately in the monorepo)  
+- **Build Tool**: TurboRepo  
+- **State Management**: Recoil  
+- **API Calls**: Axios  
 
-- Configure the top-level `parserOptions` property like this:
+---
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 🎨 **Screenshots**
+Here are some screenshots of the frontend interface:
+
+### 📁 **Dashboard View**
+![Dashboard Screenshot](screenshots/dashboard.png)
+
+### 📤 **File Upload**
+![File Upload Screenshot](screenshots/upload.png)
+
+### 🔍 **PDF Preview**
+![PDF Preview Screenshot](screenshots/pdf_preview.png)
+
+### 🎵 **Audio Preview**
+![Audio Preview Screenshot](screenshots/audio_preview.png)
+
+### 🎥 **Video Preview**
+![Video Preview Screenshot](screenshots/video_preview.png)
+
+### 📸 **Image Preview**
+![Image Preview Screenshot](screenshots/image_preview.png)
+
+### 📄 **Document Sharing**
+![Document Sharing Screenshot](screenshots/document_sharing.png)
+
+*(Make sure to replace these file names with actual screenshots in your repo under the `screenshots/` folder.)*
+
+---
+
+## 🛠 **Installation & Setup**
+
+### ⚡ **Prerequisites**
+- Node.js `>= 18`
+- PNPM / Yarn / NPM (preferred: `pnpm`)
+- TurboRepo installed globally _(optional)_
+
+### 🏗️ **Step 1: Clone the repository**
+```sh
+git clone https://github.com/shray-jayn/SkyShare.git
+cd apps
+cd frontend
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+### 🚀 **Step 2: Install dependencies**
+Using PNPM:
+```sh
+pnpm install
 ```
+Or with Yarn:
+```sh
+yarn install
+```
+
+### 🏃 **Step 3: Start the frontend app**
+```sh
+pnpm dev  # or yarn dev
+```
+Your SkyShare frontend will be running at **`http://localhost:5173`** (default Vite port).
+
+---
+
+
+## 🏗 **Build for Production**
+To build the frontend:
+```sh
+pnpm build  # or yarn build
+```
+For a preview of the production build:
+```sh
+pnpm preview  # or yarn preview
+```
+
+---
+
+## 📜 **Folder Structure**
+```
+/skyshare
+  ├── /apps
+  │   ├── /frontend   # React app (this repo)
+  │   ├── /backend    # NestJS backend (handled separately)
+  ├── /packages
+  ├── turbo.json      # TurboRepo config
+  ├── package.json
+  ├── README.md
+```
+
+---
+
+## 🔍 **Linting & Code Quality**
+Run ESLint to check for code issues:
+```sh
+pnpm lint
+```
+
+---
+
+## 💡 **Contributing**
+🚀 We welcome contributions! Feel free to:
+- Open an **issue** for bug reports or feature requests  
+- Create a **pull request** with your improvements  
+
+---
+
+## 📜 **License**
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 💌 **Contact & Support**
+Have questions or suggestions?  
+Reach out via **[shrayjayn1@gmail.com](mailto:shrayjayn1@gmail.com)** or open an issue.
+
+---
+

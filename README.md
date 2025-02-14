@@ -1,81 +1,114 @@
-# Turborepo starter
+# Turborepo Starter - SkyShare
 
-This is an official starter Turborepo.
+This is the root **Turborepo** for **SkyShare**, a cloud-sharing platform that includes both **frontend** and **backend** applications.
 
-## Using this example
+---
 
-Run the following command:
-
+## 🚀 **Using this Example**
+Run the following command to create a new Turborepo:
 ```sh
 npx create-turbo@latest
 ```
 
-## What's inside?
+---
 
+## 📦 **What's Inside?**
 This Turborepo includes the following packages/apps:
 
-### Apps and Packages
+### **Apps**
+- `apps/frontend`: SkyShare **React** frontend
+- `apps/backend`: SkyShare **NestJS** backend
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### **Packages**
+- `@repo/ui`: A shared React component library
+- `@repo/eslint-config`: ESLint configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@repo/typescript-config`: TypeScript configurations used throughout the monorepo
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+Each package/app is **100% TypeScript**.
 
-### Utilities
+---
 
-This Turborepo has some additional tools already setup for you:
+## 🚀 **SkyShare Features**
+✅ **User Authentication** (JWT-based authentication)  
+✅ **File Upload & Management** (AWS S3 integration)  
+✅ **Share Files via Public Links** (CloudFront signed URLs)  
+✅ **Role-Based Access Control** (Admin/User roles)  
+✅ **Favorite & Search Files** (Filter and categorize files)  
+✅ **Email Notifications** (Mailersend integration)  
+✅ **Prisma ORM** for **PostgreSQL** database management  
+✅ **CORS & Security Configurations** (Environment-based access control)  
+✅ **Search API** to find files efficiently  
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+---
 
-### Build
+## 🛠 **Utilities**
+This Turborepo has additional tools already set up:
+- **TypeScript** for static type checking
+- **ESLint** for code linting
+- **Prettier** for code formatting
 
-To build all apps and packages, run the following command:
+---
 
+## 🏗 **Setup & Build**
+### 🔧 **Setup Locally**
+1. **Clone the repository**
+```sh
+git clone https://github.com/shray-jayn/SkyShare.git
+cd skyshare
 ```
-cd my-turborepo
+2. **Install dependencies**
+```sh
+pnpm install
+```
+3. **Setup environment variables**
+Create a `.env` file in the root directory and configure it with required values (database credentials, AWS, JWT, etc.).
+
+4. **Run database migrations**
+```sh
+pnpm prisma migrate dev
+```
+
+### 🏗 **Build**
+To build all apps and packages, run:
+```sh
 pnpm build
 ```
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
+## 🏃 **Develop**
+To develop all apps and packages, run:
+```sh
 pnpm dev
 ```
 
-### Remote Caching
+---
 
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+## ⚡ **Remote Caching**
+Turborepo can use **Remote Caching** to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
-
-```
-cd my-turborepo
+By default, Turborepo caches locally. To enable **Remote Caching**, you need a **Vercel** account. If you don't have an account, create one and enter the following commands:
+```sh
+cd skyshare
 npx turbo login
 ```
+This will authenticate the Turborepo CLI with your Vercel account.
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
+Next, link your Turborepo to **Remote Cache** by running:
+```sh
 npx turbo link
 ```
 
-## Useful Links
+---
 
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
+## 🔗 **Useful Links**
+Learn more about **Turborepo**:
+- [Tasks](https://turbo.build/repo/docs/core-concepts/tasks)
 - [Caching](https://turbo.build/repo/docs/core-concepts/caching)
 - [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
+- [Filtering](https://turbo.build/repo/docs/core-concepts/filtering)
 - [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
 - [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+
+---
+
