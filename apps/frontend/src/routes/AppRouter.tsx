@@ -1,118 +1,69 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { Suspense, lazy } from "react";
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { authState } from "../recoil/atoms/auth.atom";
+import { Spin } from "antd";
 
-import Home from "../pages/Home.page";
-import Login from "../pages/Login.page";
-import SignUp from "../pages/SignUp.page";
-import Shared from "../pages/Shared.page";
-import Documents from "../pages/Documents.page";
-import Pictures from "../pages/Pictures.page";
-import Videos from "../pages/Videos.page";
-import Audios from "../pages/Audios.page";
-import NotFound from "../pages/NotFound.page";
-import FileDetail from "../pages/FileDetail.page";
-import Favorites from "../pages/Favourites.page";
-import Search from "../pages/Search.page"; 
+// Lazy Load Pages for Performance Optimization
+const Home = lazy(() => import("../pages/Home.page"));
+const Login = lazy(() => import("../pages/Login.page"));
+const SignUp = lazy(() => import("../pages/SignUp.page"));
+const Shared = lazy(() => import("../pages/Shared.page"));
+const Documents = lazy(() => import("../pages/Documents.page"));
+const Pictures = lazy(() => import("../pages/Pictures.page"));
+const Videos = lazy(() => import("../pages/Videos.page"));
+const Audios = lazy(() => import("../pages/Audios.page"));
+const NotFound = lazy(() => import("../pages/NotFound.page"));
+const FileDetail = lazy(() => import("../pages/FileDetail.page"));
+const Favorites = lazy(() => import("../pages/Favourites.page"));
+const Search = lazy(() => import("../pages/Search.page"));
 
-// Component to protect private routes
 const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const auth = useRecoilValue(authState);
-
-  // Redirect to login if not authenticated
-  if (!auth.isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
+  return auth.isAuthenticated ? children : <Navigate to="/login" replace />;
 };
+
+// Protected Layout for Private Routes
+const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <RequireAuth>
+    <>
+      {children}
+    </>
+  </RequireAuth>
+);
 
 const AppRouter: React.FC = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
+      <Suspense fallback={
+        <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+          {/* A card-like container for the spinner */}
+          <div className="flex flex-col items-center p-6">
+            <Spin size="large" tip="Loading..." />
+            {/* <span className="mt-2 text-gray-600">Please wait while we load the page...</span> */}
+          </div>
+        </div>
+      }>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
 
-        {/* Private Routes */}
-        <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <Home />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/shared"
-          element={
-            <RequireAuth>
-              <Shared />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/favourites"
-          element={
-            <RequireAuth>
-              <Favorites />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/documents"
-          element={
-            <RequireAuth>
-              <Documents />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/pictures"
-          element={
-            <RequireAuth>
-              <Pictures />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/videos"
-          element={
-            <RequireAuth>
-              <Videos />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/audios"
-          element={
-            <RequireAuth>
-              <Audios />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/files/:fileId"
-          element={
-            <RequireAuth>
-              <FileDetail />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/search"
-          element={
-            <RequireAuth>
-              <Search/>
-            </RequireAuth>
-          }
-        />
+          {/* Private Routes */}
+          <Route path="/" element={<ProtectedLayout><Home /></ProtectedLayout>} />
+          <Route path="/shared" element={<ProtectedLayout><Shared /></ProtectedLayout>} />
+          <Route path="/favourites" element={<ProtectedLayout><Favorites /></ProtectedLayout>} />
+          <Route path="/documents" element={<ProtectedLayout><Documents /></ProtectedLayout>} />
+          <Route path="/pictures" element={<ProtectedLayout><Pictures /></ProtectedLayout>} />
+          <Route path="/videos" element={<ProtectedLayout><Videos /></ProtectedLayout>} />
+          <Route path="/audios" element={<ProtectedLayout><Audios /></ProtectedLayout>} />
+          <Route path="/files/:fileId" element={<ProtectedLayout><FileDetail /></ProtectedLayout>} />
+          <Route path="/search" element={<ProtectedLayout><Search /></ProtectedLayout>} />
 
-        {/* 404 Not Found */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* 404 Not Found */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 };

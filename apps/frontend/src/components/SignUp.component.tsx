@@ -1,28 +1,26 @@
 import React from "react";
 import { Button, Form, Input, Checkbox, message } from "antd";
-// import { GoogleOutlined, AppleOutlined } from "@ant-design/icons";
-import { authService } from "../services/auth.service"; 
-import { useNavigate } from "react-router-dom"; 
+import { authService } from "../services/auth.service";
+import { useNavigate, Link } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { authState } from "../recoil/atoms/auth.atom";
 
 const SignUpComponent: React.FC = () => {
   const [form] = Form.useForm();
-  const navigate = useNavigate(); 
-  const setAuth = useSetRecoilState(authState); 
+  const navigate = useNavigate();
+  const setAuth = useSetRecoilState(authState);
 
   const onFinish = async (values: any) => {
     const { name, email, password } = values;
 
     try {
-      
       const response = await authService.register({ name, email, password });
       const { user, token } = response;
 
       setAuth({
         isAuthenticated: true,
         user,
-        token
+        token,
       });
 
       message.success("Account created successfully!");
@@ -56,18 +54,6 @@ const SignUpComponent: React.FC = () => {
       <p className="text-gray-500 mb-6 text-center">
         Enter your credentials to create your account
       </p>
-
-      {/* Social Login */}
-      {/* <div className="flex justify-center gap-4 mb-4">
-        <Button icon={<GoogleOutlined />} className="w-1/2 border-gray-300">
-          Sign-up with Google
-        </Button>
-        <Button icon={<AppleOutlined />} className="w-1/2 border-gray-300">
-          Sign-up with Apple
-        </Button>
-      </div> */}
-
-      {/* <div className="text-center text-gray-400 mb-6">or</div> */}
 
       {/* Form */}
       <Form
@@ -112,7 +98,8 @@ const SignUpComponent: React.FC = () => {
               message: "Password must be at least 8 characters long!",
             },
             {
-              pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/,
+              pattern:
+                /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/,
               message:
                 "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character!",
             },
@@ -173,10 +160,7 @@ const SignUpComponent: React.FC = () => {
       </Form>
 
       <p className="text-center text-sm mt-4">
-        Have an account?{" "}
-        <a href="/login" className="text-blue-600 hover:underline">
-          Sign in
-        </a>
+        Have an account? <Link className="text-blue-600" to="/login">Sign In</Link>
       </p>
     </div>
   );

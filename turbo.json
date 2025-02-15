@@ -3,9 +3,13 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["apps/backend/dist/**", "apps/frontend/dist/**"]
+      "outputs": []
     },
-    "backend:build": {
+    "frontend#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "backend#build": {
       "dependsOn": ["^build"],
       "env": [
         "CORS_ORIGIN",
@@ -18,31 +22,29 @@
         "AWS_S3_BUCKET",
         "CLOUDFRONT_DOMAIN",
         "CLOUDFRONT_KEYPAIR_ID",
-        "CLOUDFRONT_PRIVATE_KEY"
+        "CLOUDFRONT_PRIVATE_KEY",
+        "APP_BASE_URL",
+        "MAILERSEND_API_KEY"
       ],
-      "outputs": ["apps/backend/dist/**"]
-    },
-    "frontend:build": {
-      "dependsOn": ["^build"],
-      "outputs": ["apps/frontend/dist/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
+      "outputs": ["dist/**"]
     },
     "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "db:generate": {
+      "dependsOn": ["^dev"],
       "cache": false
     },
-    "db:push": {
+    "frontend#dev": {
       "cache": false
+    },
+    "backend#dev": {
+      "cache": false
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "outputs": []
     }
-  },
-  "globalDependencies": [
-    "turbo.json",
-    "tsconfig.json",
-    "apps/backend/.env"
-  ]
+  }
 }
