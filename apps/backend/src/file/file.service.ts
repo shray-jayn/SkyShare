@@ -102,18 +102,6 @@ export class FileService {
     }
   }
 
-    // async searchFiles(searchFilesDto: SearchFilesDto, userId: string): Promise<SearchFilesResponseDto[]> {
-    //   try {
-    //     const { query, size, date } = searchFilesDto;
-    //     const filters = this.buildSearchFilters(query, size, date, userId);
-
-    //     return await this.prisma.file.findMany({ where: filters });
-    //   } catch (error) {
-    //     console.error('Error searching files:', error);
-    //     throw new InternalServerErrorException(FILE_MESSAGES.FILE_SEARCH_FAILED);
-    //   }
-    // }
-
   async generateDownloadUrl(fileId: string): Promise<DownloadUrlResponseDto> {
     try {
       const file = await this.getFileMetadata(fileId);
@@ -230,7 +218,6 @@ export class FileService {
     }
   }
 
-
   async getAllFilesSharedWithUser(userEmail: string): Promise<GetAllFilesResponseDto[]> {
     try {
       const sharedFiles = await this.prisma.file.findMany({
@@ -282,8 +269,6 @@ export class FileService {
       select: { email: true },
     });
   }
-  
-  
 
   async getFileMetadata(fileId: string): Promise<FileMetadataResponseDto> {
     try {
@@ -328,7 +313,6 @@ export class FileService {
       throw new InternalServerErrorException('Failed to fetch favorite file count');
     }
   }
-
   
   async getSharedFileCount(email: string): Promise<number> {
     try {
@@ -347,8 +331,6 @@ export class FileService {
       throw new InternalServerErrorException('Failed to fetch shared file count');
     }
   }
-  
-
 
   async updateFileStatus(fileId: string, status: FileStatus): Promise<{ message: string }> {
     try {

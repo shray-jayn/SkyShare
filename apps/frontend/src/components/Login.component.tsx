@@ -2,12 +2,12 @@ import React from "react";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Checkbox, Form, Input, message } from "antd";
 import { authService } from "../services/auth.service";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { authState } from "../recoil/atoms/auth.atom";
 
 const LoginComponent: React.FC = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate();``
   const setAuth = useSetRecoilState(authState); 
 
   const onFinish = async (values: any) => {
@@ -118,9 +118,7 @@ const LoginComponent: React.FC = () => {
       </p> */}
       <p className="mt-4 text-sm">
         Don’t have an account yet?{" "}
-        <a href="/signup" className="text-blue-600">
-          Sign Up
-        </a>
+         <Link className="text-blue-600" to="/signup">Sign Up</Link>
       </p>
     </div>
   );

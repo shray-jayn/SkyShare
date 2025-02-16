@@ -1,0 +1,92 @@
+# TurboRepo cache and lock files
+turbo/
+node_modules/.cache
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Ignore build output from all workspaces
+apps/**/node_modules
+apps/**/dist
+apps/**/build
+apps/**/.next
+apps/**/.turbo
+apps/**/.expo
+apps/**/out
+apps/**/.parcel-cache
+
+packages/**/node_modules
+packages/**/dist
+packages/**/build
+packages/**/.turbo
+packages/**/.parcel-cache
+
+# Ignore environment and secret files
+
+# Ignore logs and temporary files
+*.log
+logs/
+*.pid
+*.seed
+*.bak
+
+# Ignore Python cache files (if using Python)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+Pipfile
+Pipfile.lock
+
+# Ignore IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# Ignore Git and Docker files
+.git
+.gitignore
+.gitmodules
+.DS_Store
+docker-compose.yml
+Dockerfile
+
+# Ignore dependency files (common across languages)
+pip-log.txt
+poetry.lock
+Gemfile.lock
+composer.lock
+
+# Ignore workspace and monorepo build artifacts
+turbo.json
+.turbo/
+
+
+# Ignore logs and temporary files
+*.log
+logs/
+*.pid
+*.seed
+*.bak
+
+# Ignore IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# Ignore Git and Docker files
+.git
+.gitignore
+.gitmodules
+.DS_Store
+docker-compose.yml
+Dockerfile
+
+# Ignore build output
+dist/
+build/
+tmp/
+out/
+coverage/
+
+#Ignore private keys and sensitive files
