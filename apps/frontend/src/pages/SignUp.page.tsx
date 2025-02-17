@@ -3,13 +3,12 @@ import { Carousel } from "antd";
 import SignUpComponent from "../components/SignUp.component";
 
 const images = [
-  '../../public/image1.jpg',
-  '../../public/image2.jpg',
-  '../../public/image3.jpg',
-  '../../public/image4.jpg',
-  '../../public/image5.jpg',
+  '/image1.jpg',
+  '/image2.jpg',
+  '/image3.jpg',
+  '/image4.jpg',
+  '/image5.jpg',
 ];
-
 
 const SignUpPage: React.FC = () => {
   return (
